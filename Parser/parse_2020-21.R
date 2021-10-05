@@ -75,8 +75,8 @@ dat$sexual.minority <- ifelse(dat[['Sexual Identity']] == 'straight (heterosexua
 
 # disability
 # table(dat[["Do you have any disabilities?"]])
-dat <- replace_entry(dat, "Do you have any disabilities?", "Please specify", NA)
-dat <- replace_entry(dat, "Do you have any disabilities?", "Long-term", NA)
+# dat <- replace_entry(dat, "Do you have any disabilities?", "Please specify", NA)
+# dat <- replace_entry(dat, "Do you have any disabilities?", "Long-term", NA)
 
 # area of research
 dat <- replace_entry(dat, "What is your area of research?", "Structural biology", "Structural Biology")
@@ -199,11 +199,18 @@ q <- "If you received CERB, how did it impact your financial situation?"
 
 # did not apply to OSAP
 q <- "If you DID NOT apply for OSAP, what was the reason?"
-dat <- replace_entry(dat, q, "wealthy", "I chose not to apply")
-
-
+dat <- replace_entry(dat, q, "wealthy|enough savings|nonexistent|stipend covers", "I chose not to apply", ignore_case = TRUE)
+dat <- replace_entry(dat, q, "ago|not eligible|Ineligible|no longer qualified", "I did not think I was eligible", ignore_case = TRUE)
+dat <- replace_entry(dat, q, "province|BC|Ontario|Alberta|overseas", "I was not considered an Ontario Resident", ignore_case = TRUE)
+dat <- replace_entry(dat, q, "debt|loan", "I did not want more debt")
+dat <- replace_entry(dat, q, "household income|family income", "I did not think I was eligible")
+dat <- replace_entry(dat, q, "not a student|in school", "I chose not to apply")
+dat <- replace_entry(dat, q, "I did apply for OSAP", "N/A - I applied for OSAP")
+dat <- replace_entry(dat, q, "I was in international", "I am an International student")
+table(dat[[q]])
 
 # responses that clearly applied, captured in next question
+
 
 # applied but didnt get OSAP
 q <- "If you APPLIED but you did not receive funds from OSAP in 2020-2021, what was the reason?"
@@ -211,7 +218,7 @@ dat <- replace_entry(dat, q, "first year", NA)
 dat <- replace_entry(dat, q, "received funds", "I applied and received funds")
 dat <- replace_entry(dat, q, "n/a", "N/A I did not apply")
 dat <- replace_entry(dat, q, "Not eligible", "Uncertain/Do not know")
-dat <- replace_entry(dat, q, "stipend", "Stipend altered my financial eligibility")
+# dat <- replace_entry(dat, q, "stipend", "Stipend altered my financial eligibility")
 # n/a
 # Not eligible
 # Ineligible due to stipend
