@@ -5,6 +5,10 @@ library(data.table)
 
 ## HELPER #########################################################################################
 
+is_multi_select <- function(dat){
+
+}
+
 replace_entry <- function(dat, column, search, replace, ignore_case = FALSE){
 
     dat[grep(search, x = dat[[column]], ignore.case = ignore_case), column] <- replace
@@ -23,7 +27,7 @@ replace_in_list <- function(ll, search, replace, ignore_case = FALSE){
 
 ## DATA ###########################################################################################
 # Load survey data #
-file <- "~/Documents/grc_data/Raw/Faculty of Medicine Graduate Student Survey_2021_22  (Responses).xlsx"
+file <- "~/Documents/grc_data/Raw/Faculty of Medicine Graduate Student Survey_2020_21 (Responses).xlsx"
 # only read first sheet (doesn't really work)
 dat <- read_excel(file, na = c("", "NA", "N/A"), sheet = 'Form Responses 1')
 print(dim(dat))
@@ -58,6 +62,9 @@ dat$gender.minority <- ifelse(dat[['Gender Identity']] == 'man' | dat[['Gender I
 dat$sexual.minority <- ifelse(dat[['Sexual Identity']] == 'straight (heterosexual)', FALSE, TRUE)
 # additional responses
 # - greyromantic
+
+dat$racialized <- ifelse(dat[['Do you identify as a racialized person?']] == 'YES', TRUE,
+                    ifelse(dat[['Do you identify as a racialized person?']] == 'NO', FALSE, NA))
 
 # racial / ethnicity
 # additional responses:
@@ -183,9 +190,16 @@ q <- "What was the total value ($) of all scholarships you received during the 2
 dat$sch.tot.value <- as.numeric(dat[[q]])
 table(dat$sch.tot.value)
 
+# individual scholarships
+q <- 'What type of scholarship(s) did you receive during the 2020/2021 academic year?'
+scholarships.won.columns <- grep(x=colnames(dat), pattern=q, fixed=TRUE)
+smallDat <- dat[,scholarships.won.columns]
+colnames(smallDat) <- gsub(colnames(smallDat), pat="What type of scholarship\\(s\\) did you receive during the 2020/2021 academic year\\? \\[|\\]", rep="")
+dat <- cbind(dat, smallDat)
+
 # total value of topup
 q <- "What was the monetary value, beyond your base stipend, that you received as a result of winning any awards (i.e. \"top-ups\") for the 2020/2021 academic year?"
-dat$sch.topup <- dat[[q]]
+dat$sch.topup <- as.numeric(dat[[q]])
 table(dat$sch.topup)
 
 # covid CERB
