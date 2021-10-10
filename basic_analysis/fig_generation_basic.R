@@ -104,14 +104,16 @@ responses_2021_22_cleaned %>% filter(!is.na(`Gender Identity`)) %>%
   labs(title = "Students able to Support themselves on Stipend Alone", x = "Gender Identity", y = "Percentage")
 ggsave("figures/gender_stipend_support.png")
 
-### experiencing food/housing insecurity, and racialized
+### experiencing food/housing/medical insecurity, and racialized
 responses_2021_22_cleaned %>% 
   filter(!is.na(`Do you experience any level of housing insecurity?`), 
          !is.na(`Do you experience any level of food insecurity?`), 
+         !is.na(`Do you experience any level of health care insecurity?`),
          !is.na(`Do you identify as a racialized person?`),
          `Do you identify as a racialized person?` != "Prefer not to say") %>%
   select(`Do you experience any level of housing insecurity?`, 
          `Do you experience any level of food insecurity?`, 
+         `Do you experience any level of health care insecurity?`,
          `Do you identify as a racialized person?`) %>%
   transmute(insecurity_type = case_when(
     `Do you experience any level of housing insecurity?` != "No" & 
@@ -130,21 +132,30 @@ responses_2021_22_cleaned %>%
        x = "Identified as Racialized", y = "Percentage")
 ggsave("figures/racialization_insecurity.png")
 
-### monetary support needed delineated by degree
-responses_2021_22_cleaned %>%
-  group_by(`What degree program are you in?`,
-           `How much additional monetary support would you need to meet your day-to-day expenses each year (above your graduate living allowance)?`) %>%
-  tally() %>% group_by(`What degree program are you in?`) %>% 
-  transmute(proportion = n/sum(n), add_mon_support = 
-              factor(`How much additional monetary support would you need to meet your day-to-day expenses each year (above your graduate living allowance)?`,
-                     levels = c("0.0", "$1 - $1,000", "$1,000 - $5,000",
-                                "$5,000 - $10,000", "$10,000 - $15,000",
-                                "$15,000 - $20,000", "$20,000+")), n,
-            deg_prog = `What degree program are you in?`) %>%
-  ggplot() + 
-  geom_col(aes(y = proportion, fill = add_mon_support, x = add_mon_support), position = "dodge") +
-  geom_text(aes(y = proportion + 0.01, label = n, x = add_mon_support)) +
-  facet_grid(cols = vars(deg_prog)) +
-  labs(title = "How much additional monetary support would you need to meet your day-to-day\nexpenses each year (above your graduate living allowance)?") +
-  theme(axis.text.x = element_text(angle = 270, hjust =0, vjust =0.5))
-ggsave("figures/addtnl_mon_support_by_deg.png")
+### experiencing food/housing/medical insecurity, and international
+responses_2021_22_cleaned %>% 
+  filter(!is.na(`Do you experience any level of housing insecurity?`), 
+         !is.na(`Do you experience any level of food insecurity?`), 
+         !is.na(`Do you experience any level of health care insecurity?`),
+         !is.na(`Are you an international or domestic student?`),
+         `Do you identify as a racialized person?` != "Prefer not to say") %>%
+  select(`Do you experience any level of housing insecurity?`, 
+         `Do you experience any level of food insecurity?`, 
+         `Do you experience any level of health care insecurity?`,
+         `Are you an international or domestic student?`) %>%
+  transmute(insecurity_type = case_when(
+    `Do you experience any level of housing insecurity?` != "No" & 
+      `Do you experience any level of food insecurity?` != "No" ~ "Food + Housing",
+    `Do you experience any level of housing insecurity?` != "No" ~ "Housing",
+    `Do you experience any level of food insecurity?` != "No" ~ "Food",
+    TRUE ~ "No Insecurity"
+  ), international = `Are you an international or domestic student?`) %>% 
+  group_by(international, insecurity_type) %>% count() %>% 
+  group_by(international) %>% mutate(perc_of_ntnl = n/sum(n)) %>%
+  ggplot() + geom_col(aes(x = international, y = perc_of_ntnl)) +
+  geom_text(aes(label = paste0(n, "/", n/perc_of_ntnl), 
+                x = international, y = perc_of_ntnl + 0.02)) +
+  facet_grid(cols = vars(insecurity_type)) +
+  labs(title = "Students Experiencing Food or Housing Insecurity",
+       x = "International or Domestic", y = "Percentage")
+ggsave("figures/racialization_insecurity.png")

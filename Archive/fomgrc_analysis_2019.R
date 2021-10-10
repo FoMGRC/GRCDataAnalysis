@@ -1,5 +1,4 @@
-# 2017 student finance survey analysis #
-setwd("C:/Users/matth/Dropbox/FOMGRC/2019_survey")
+# 2019-20 student finance survey analysis #
 
 # Load libraries
 library(ggplot2)
@@ -7,8 +6,10 @@ theme_set(theme_bw(base_size = 16))
 library(dplyr)
 library(ggthemes)
 # Load survey data #
-dat <- read.csv(file = "Faculty of Medicine Graduate Student Survey (Responses) - Form Responses 1.csv", na.strings = c("", "NA", "N/A"), skip = 1)
+dat <- read_xlsx(path = "GRCDataAnalysis/survey_results/Faculty of Medicine Graduate Student Survey_2019_20 (Responses).xlsx", na = c("", "NA", "N/A"))
 
+#add dept column
+dat$dept <- dat$`What department are you in?`
 
 # Remove duplicate answers
 dat <- dat[-which(duplicated(x = dat[-1])),]
@@ -49,6 +50,9 @@ dat$sch.apply <- rapply(dat$sch.apply, function(x) gsub(pattern = ".*restra.*|.*
 dat$sch.won.type <- strsplit(x = as.character(dat$sch.won.type), split = ";") # Split and convert field into list
 # Replace in list
 dat$sch.won.type <- rapply(dat$sch.won.type, function(x) gsub(pattern = ".*restra.*|.*retra.*", x = x, replacement = "SickKids Restracomp", ignore.case = T), how = "replace")
+
+#write cleaned data to file
+write_delim(dat, "GRCDataAnalysis/survey_results/cleaned/GRC_Survey_Cleaned_2019-20.csv")
 
 # Scholarship value
 summary(dat$sch.tot.value)
