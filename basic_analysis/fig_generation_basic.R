@@ -147,4 +147,8 @@ responses_2021_22_cleaned %>%
   facet_grid(cols = vars(deg_prog)) +
   labs(title = "How much additional monetary support would you need to meet your day-to-day\nexpenses each year (above your graduate living allowance)?") +
   theme(axis.text.x = element_text(angle = 270, hjust =0, vjust =0.5))
+<<<<<<< HEAD
 ggsave("figures/addtnl_mon_support_by_deg.png")
+=======
+ggsave("figures/addtnl_mon_support.png")
+>>>>>>> main
