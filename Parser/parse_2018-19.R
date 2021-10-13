@@ -24,7 +24,7 @@ replace_in_list <- function(ll, search, replace, ignore_case = FALSE){
 
 ## DATA ###########################################################################################
 # Load survey data #
-file <- "~/Documents/grc_data/Raw/Faculty of Medicine Graduate Student Survey_2019_20 (Responses).xlsx"
+file <- "~/Documents/grc_data/Raw/Faculty of Medicine Graduate Student Survey_2018_19 (Responses).xlsx"
 # only read first sheet (doesn't really work)
 dat <- read_excel(file, na = c("", "NA", "N/A"), sheet = 1)
 print(dim(dat))
@@ -51,8 +51,8 @@ dat$gender.minority <- ifelse(dat[['Gender']] != 'Female' & dat[['Gender']] != '
 
 # degree program
 dat <- replace_entry(dat, 'What degree program are you in?', '^PhD$', 'Direct-entry PhD')
-dat <- replace_entry(dat, 'What degree program are you in?', '^PhD after MSc$', 'Direct-entry PhD')
-dat <- replace_entry(dat, 'What degree program are you in?', 'MHSc', 'MSc')
+dat <- replace_entry(dat, 'What degree program are you in?', 'previously', 'Direct-entry PhD')
+dat <- replace_entry(dat, 'What degree program are you in?', '^PhD with MSc$', 'Transferred PhD')
 table(dat[['What degree program are you in?']])
 
 # Add short dept name # no RSI
@@ -66,17 +66,18 @@ dat[[q]] <- tools::toTitleCase(dat[[q]])
 
 # Research location
 dat[["What is your primary research location?"]] <- tools::toTitleCase(dat[["What is your primary research location?"]])
-
 table(dat[["What is your primary research location?"]])
 
-dat[grep("undefined|undecided|TRP|capstone|off campus|n/a", x = dat[["What is your primary research location?"]], ignore.case = T), "What is your primary research location?"] <- NA
+dat[grep("unknown|undefined|undecided|TRP|capstone|off campus|n/a", x = dat[["What is your primary research location?"]], ignore.case = T), "What is your primary research location?"] <- NA
+dat[grep("Baycrest", x = dat[["What is your primary research location?"]]), "What is your primary research location?"] <- "Rotman Research Institute (Baycrest)"
+dat[grep("Toronto General|TGH", x = dat[["What is your primary research location?"]]), "What is your primary research location?"] <- "Toronto General Hospital"
 dat[grep("Mouse Imaging|MICe", x = dat[["What is your primary research location?"]]), "What is your primary research location?"] <- "The Mouse Imaging Centre"
 dat[grep("Pharmacy Building", x = dat[["What is your primary research location?"]], ignore.case = T), "What is your primary research location?"] <- "Leslie Dan Faculty of Pharmacy"
 
 table(dat[["What is your primary research location?"]])
 
 # Awards applied for
-dat$sch.apply <- dat[["What award(s) did you apply for to be held in the 2018-2019 academic year?"]]
+dat$sch.apply <- dat[["What award(s) did you apply for to be held in the 2017-2018 academic year?"]]
 # Cleaning fields with extra entries
 dat$sch.apply <- gsub(pattern = ", | & R", 
                       x = dat$sch.apply,
@@ -86,24 +87,30 @@ dat$sch.apply <- strsplit(x = as.character(dat$sch.apply), split = ";")
 table(unlist(dat$sch.apply))
 
 # Replace in list
-dat$sch.apply <- replace_in_list(dat$sch.apply, "already|apparently|international|could not apply|ineligible", 'Did not apply', ignore_case = T)
+dat$sch.apply <- replace_in_list(dat$sch.apply, "already|apparently|international|could not apply|not eligible|none|n/a", 'Did not apply', ignore_case = T)
 dat$sch.apply <- replace_in_list(dat$sch.apply, "entrance", 'Entrance Scholarship', ignore_case = T)
-dat$sch.apply <- replace_in_list(dat$sch.apply, "internal", 'Department Internal Award', ignore_case = T)
-dat$sch.apply <- replace_in_list(dat$sch.apply, "Restracomp", 'SickKids Restracomp', ignore_case = T)
+dat$sch.apply <- replace_in_list(dat$sch.apply, "internal|department", 'Department Internal Award', ignore_case = T)
+dat$sch.apply <- replace_in_list(dat$sch.apply, "Restracomp|Sick kids|sickkids", 'SickKids Restracomp', ignore_case = T)
 dat$sch.apply <- replace_in_list(dat$sch.apply, "GSEF|endowment", 'Faculty of Medicine Graduate Student Endowment Fund', ignore_case = T)
+dat$sch.apply <- replace_in_list(dat$sch.apply, "u of t|university", 'UofT Awards', ignore_case = T)
+dat$sch.apply <- replace_in_list(dat$sch.apply, "organizations", 'External Awards', ignore_case = T)
+dat$sch.apply <- replace_in_list(dat$sch.apply, "GLSE", 'GLSE', ignore_case = T)
+
+dat$sch.apply <- replace_in_list(dat$sch.apply, "vanier", 'Vanier', ignore_case = T)
 
 dat$sch.apply <- rapply(dat$sch.apply, function(x) gsub(pattern = "CBS.*|Canadian Blood Services.*", x = x, replacement = "Canadian Blood Services", ignore.case = T), how = "replace")
 dat$sch.apply <- rapply(dat$sch.apply, function(x) gsub(pattern = "Banting & Best Diabetes.*|BBDC.*", x = x, replacement = "Banting & Best Diabetes Centre", ignore.case = T), how = "replace")
-dat$sch.apply <- rapply(dat$sch.apply, function(x) gsub(pattern = "u of t.*", x = x, replacement = "UofT Awards", ignore.case = T), how = "replace")
+dat$sch.apply <- rapply(dat$sch.apply, function(x) gsub(pattern = ".*Rare Disease.*", x = x, replacement = "Rare Disease Foundation", ignore.case = T), how = "replace")
 dat$sch.apply <- rapply(dat$sch.apply, function(x) gsub(pattern = "MITACS.*", x = x, replacement = "MITACS", ignore.case = T), how = "replace")
+dat$sch.apply <- rapply(dat$sch.apply, function(x) gsub(pattern = "cystic.*", x = x, replacement = "Cystic Fibrosis", ignore.case = T), how = "replace")
 
 table(unlist(dat$sch.apply))
 
-dat[['What award(s) did you apply for to be held in the 2018-2019 academic year?']] <- sapply(dat$sch.apply, paste, collapse=", ")
+dat[['What award(s) did you apply for to be held in the 2017-2018 academic year?']] <- sapply(dat$sch.apply, paste, collapse=", ")
 dat <- dat[, colnames(dat) != 'sch.apply']
 
 # Awards hold
-dat$sch.hold <- dat[["What type of scholarship(s) did you receive?"]]
+dat$sch.hold <- dat[['What type of scholarship(s) did you receive?']]
 # Cleaning fields with extra entries
 dat$sch.hold <- gsub(pattern = ", | & R",
                       x = dat$sch.hold,
@@ -132,28 +139,25 @@ dat[["What type of scholarship(s) did you receive?"]] <- sapply(dat$sch.hold, pa
 dat <- dat[, colnames(dat) != 'sch.hold']
 
 # scholarship value
-q <- 'What was the total value of your scholarship(s) for the 2018/19 academic year?'
+q <- 'What was the total value of your scholarship(s) for the 2017/18 academic year?'
 dat$sch.tot.value <- as.numeric(dat[[q]])
 table(dat$sch.tot.value)
 
-q <- 'What was the monetary value beyond your base stipend that you received as a result of winning any awards (i.e. "top-ups") for the 2018/19 academic year?'
+q <- 'What was the monetary value beyond your base stipend that you received as a result of winning any awards (i.e. "top-ups") for the 2017/18 academic year?'
 dat$sch.topup <- as.numeric(dat[[q]])
 table(dat$sch.topup)
 
 # jobs
-q <- 'How many hours per week do you work as a teaching assistant?'
+q <- 'If externally employed how many hours per week do you work at this job?'
 dat[[q]] <- as.numeric(dat[[q]])
 table(dat[[q]])
 
-q <- 'How many hours per week do you work at your side job (excluding teaching assistantships)?'
-dat[[q]] <- as.numeric(dat[[q]])
-table(dat[[q]])
-
-# OSAP
+# housing
 q <- 'Approximately what is your monthly rent and/or mortgage expenses?'
 dat[[q]] <- as.numeric(dat[[q]])
 table(dat[[q]])
 
+# commute
 q <- 'How much do you spend on transit per month?'
 dat[[q]] <- as.numeric(dat[[q]])
 table(dat[[q]])
@@ -162,13 +166,10 @@ q <- 'How long on average is your commute (minutes)?'
 dat[[q]] <- as.numeric(dat[[q]])
 table(dat[[q]])
 
-q <- 'How do you support yourself financially?'
-dat <- replace_entry(dat, q, "loan", "Loans", ignore_case = T)
-
 q <- 'Are you satisfied with your housing options?'
 table(dat[[q]])
-dat <- replace_entry(dat, q, '100|great place', 'Yes', ignore_case = T)
-dat <- replace_entry(dat, q, 'somewhat|expensive|better|deal|afford|far|okay|hard|unaffordable|long-term|support', 'Could be better', ignore_case = T)
+dat <- replace_entry(dat, q, 'subsidized|family|luck|satisfied|afford', 'Yes', ignore_case = T)
+dat <- replace_entry(dat, q, 'reasonable|not really|commute|closer|better|improved', 'Could be better', ignore_case = T)
 table(dat[[q]])
 
-write.table(dat, file="~/Documents/grc_data/Parsed/GRC_Survey_Cleaned_2019-20.tsv", sep='\t', quote=T, row.names=F, col.names=T)
+write.table(dat, file="~/Documents/grc_data/Parsed/GRC_Survey_Cleaned_2018-19.tsv", sep='\t', quote=T, row.names=F, col.names=T)
