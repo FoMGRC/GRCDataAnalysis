@@ -43,9 +43,6 @@ colnames(dat) <- gsub(':', '', colnames(dat))
 
 ## CLEANING #######################################################################################
 
-# gender minority
-dat$gender.minority <- ifelse(dat[['What is your gender?']] != 'Female' & dat[['What is your gender?']] != 'Male', TRUE, FALSE)
-
 # Add short dept name # no RSI
 print(table(dat[["What department are you in?"]]))
 dat$dept.short <- factor(dat[["What department are you in?"]], labels = c("BCHM", "Imm.", "LMP", "MBP", "MoGen", "NutriSci", "PharmTox", "Phys", "IMS"))
