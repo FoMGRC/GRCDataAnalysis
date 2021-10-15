@@ -133,6 +133,8 @@ dat$sch.apply <- rapply(dat$sch.apply, function(x) gsub(pattern = "Ydessa Hendel
 
 table(unlist(dat$sch.apply))
 
+dat[["What graduate award(s) did you apply for to be held in the 2019-2020 academic year?"]] <- sapply(dat$sch.apply, paste, collapse=", ")
+dat <- dat[, colnames(dat) != 'sch.apply']
 
 q <- 'What was the total value ($) of all scholarships you received during the 2019/2020 academic year?'
 dat$sch.tot.value <- as.numeric(dat[[q]])

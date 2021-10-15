@@ -27,7 +27,7 @@ replace_in_list <- function(ll, search, replace, ignore_case = FALSE){
 
 ## DATA ###########################################################################################
 # Load survey data #
-file <- "~/Documents/grc_data/Raw/Faculty of Medicine Graduate Student Survey_2020_21 (Responses).xlsx"
+file <- "~/Documents/grc_data/Raw/Faculty of Medicine Graduate Student Survey_2021_22 (Responses).xlsx"
 # only read first sheet (doesn't really work)
 dat <- read_excel(file, na = c("", "NA", "N/A"), sheet = 'Form Responses 1')
 print(dim(dat))
@@ -50,7 +50,7 @@ print(table(dat[["What department are you in?"]]))
 dat$dept.short <- factor(dat[["What department are you in?"]], labels = c("BCHM", "Imm.", "LMP", "MBP", "MoGen", "NutriSci", "PharmTox", "Phys", "RSI", "IMS"))
 
 # gender identify
-# table(dat[["Gender Identity:"]])
+# table(dat[["Gender Identity"]])
 dat$gender.minority <- ifelse(dat[['Gender Identity']] == 'man' | dat[['Gender Identity']] == 'woman', FALSE, TRUE)
 # additional responses:
 # - transmasculine
@@ -321,5 +321,7 @@ table(dat[[q]])
 # opinions
 q <- "Do you believe stipends should be tied to standardized metrics, i.e., the cost of living in Toronto?"
 dat <- replace_entry(dat, q, "receive|qualif", NA)
+
+print(dim(dat))
 
 write.table(dat, file="~/Documents/grc_data/Parsed/GRC_Survey_Cleaned_2021-22.tsv", sep='\t', quote=T, row.names=F, col.names=T)
