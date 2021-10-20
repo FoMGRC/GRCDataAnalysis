@@ -45,6 +45,20 @@ yes_no_legend <- legend.grob(
     title.just = 'left'
     )
 
+three_legend <- legend.grob(
+    legends = list(
+        legend = list(
+            colours = default.colours(3, 'pastel'),
+            labels = c('Yes', 'Somewhat', 'No'),
+            title = expression(bold(underline('Response'))),
+            lwd = 0.3
+            )
+        ),
+    label.cex = 0.8,
+    title.cex = 1,
+    title.just = 'left'
+    )
+
 support_values <- c("0.0", "Up to $1,000",
     "$1,000 - $5,000", "$5,000 - $10,000", "$10,000 - $15,000", "$15,000 - $20,000", "$20,000+")
 names(support_values) <- c("$0", "$1 - $1,000",
@@ -60,6 +74,20 @@ value_legend <- legend.grob(
         legend = list(
             colours = default.colours(7, 'pastel'),
             labels = names(support_values),
+            title = expression(bold(underline('Response'))),
+            lwd = 0.3
+            )
+        ),
+    label.cex = 0.8,
+    title.cex = 1,
+    title.just = 'left'
+    )
+
+agreement_legend <- legend.grob(
+    legends = list(
+        legend = list(
+            colours = rev(default.colours(5, 'pastel')),
+            labels = rev(c('Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree')),
             title = expression(bold(underline('Response'))),
             lwd = 0.3
             )
@@ -201,21 +229,6 @@ raw_df$order <- 1:nrow(raw_df)
 raw_df_stack <- reshape2::melt(raw_df, id.vars = c('year', 'order'))
 raw_df_stack$variable <- factor(raw_df_stack$variable, c('Yes', 'Somewhat', 'No'))
 
-# legend
-hbfa_legend <- legend.grob(
-    legends = list(
-        legend = list(
-            colours = default.colours(3, 'pastel'),
-            labels = c('Yes', 'Somewhat', 'No'),
-            title = expression(bold(underline('Response'))),
-            lwd = 0.3
-            )
-        ),
-    label.cex = 0.8,
-    title.cex = 1,
-    title.just = 'left'
-    )
-
 create.barplot(
     main = 'Awareness of HBFA and its Stipend Impacts',
     main.cex = 1,
@@ -247,7 +260,7 @@ create.barplot(
     # text.fontface = 'bold',
     # LEGEND
     legend = list(
-        right = list(fun = hbfa_legend)
+        right = list(fun = three_legend)
         ),
     use.legacy.settings = TRUE,
     filename = paste0(date, '_hbfa_awareness', '.pdf'),
@@ -355,6 +368,57 @@ create.barplot(
         ),
     use.legacy.settings = TRUE,
     filename = paste0(date, '_can_live', '.pdf'),
+    width = 6,
+    height = 6,
+    resolution = 300
+    )
+
+# Stipend Conpensates My Work
+raw <- matched_lists[['Stipend Conpensates My Work']]
+raw_df <- lapply(raw, table)
+raw_df <- data.frame(do.call(rbind, raw_df))
+raw_df <- raw_df / rowSums(raw_df)
+raw_df$year <- gsub('X', '', rownames(raw_df))
+raw_df$year <- gsub('_', '-', raw_df$year)
+raw_df$order <- 1:nrow(raw_df)
+raw_df_stack <- reshape2::melt(raw_df, id.vars = c('year', 'order'))
+raw_df_stack$variable <- factor(raw_df_stack$variable)
+
+create.barplot(
+    main = 'My Stipend Adequately Compensates for My Work',
+    main.cex = 1,
+    data = raw_df_stack,
+    formula = value ~ order,
+    groups = variable,
+    stack = TRUE,
+    xlab.label = '',
+    xlab.cex = 0,
+    ylab.label = 'Proportion of Responses',
+    ylab.cex = 1,
+    xaxis.lab = raw_df$year,
+    xaxis.cex = 0.8,
+    xaxis.tck = c(0.5, 0),
+    yaxis.cex = 0.8,
+    ylimits = c(-0.05, 1.05),
+    yaxis.tck = c(0.5, 0),
+    # abline.v = breakpoints,
+    # abline.col = 'grey70',
+    # abline.lwd = 1,
+    # abline.lty = 2,
+    col = default.colours(5, 'pastel'),
+    # add.text = FALSE,
+    # text.labels = unique(patients_noblood),
+    # text.x = get_midpoints(patients_noblood),
+    # text.y = 1.02,
+    # text.col = 'black',
+    # text.cex = 0.8,
+    # text.fontface = 'bold',
+    # LEGEND
+    legend = list(
+        right = list(fun = agreement_legend)
+        ),
+    use.legacy.settings = TRUE,
+    filename = paste0(date, '_stipend_compensates', '.pdf'),
     width = 6,
     height = 6,
     resolution = 300
@@ -795,41 +859,730 @@ create.scatterplot(
 ## EMPLOYMENT #####################################################################################
 
 # Hours TA
+raw <- matched_lists[['Hours TA']]
+raw_df <- lapply(seq_along(raw), function(i) data.frame(value = raw[[i]], name = names(raw)[i]))
+raw_df <- data.frame(do.call(rbind, raw_df), check.names = F)
+raw_df$year <- gsub('X', '', raw_df$name)
+raw_df$year <- gsub('_', '-', raw_df$year)
+raw_df <- raw_df[raw_df$value != 0, ]
+
+create.histogram(
+    main = 'Number of TA Hours in those who TA',
+    main.cex = 1,
+    x = ~ value | year,
+    data = raw_df,
+    layout = c(1, length(unique(raw_df$year))),
+    type = 'percent',
+    xlab.label = 'Hours',
+    xlab.cex = 1,
+    ylab.label = 'Percentage of Responses',
+    ylab.cex = 1,
+    # xaxis.lab = raw_df$year,
+    xaxis.cex = 0.8,
+    xaxis.tck = c(0.5, 0),
+    yaxis.cex = 0.8,
+    ylimits = c(0, 31),
+    yaxis.tck = c(0.5, 0),
+    breaks = seq(0, max(raw_df$value), 1),
+    # abline.v = breakpoints,
+    # abline.col = 'grey70',
+    # abline.lwd = 1,
+    # abline.lty = 2,
+    col = default.colours(1, 'pastel'),
+    # add.text = FALSE,
+    # text.labels = unique(patients_noblood),
+    # text.x = get_midpoints(patients_noblood),
+    # text.y = 1.02,
+    # text.col = 'black',
+    # text.cex = 0.8,
+    # text.fontface = 'bold',
+    # LEGEND
+    # legend = list(
+    #     right = list(fun = value_legend)
+    #     ),
+    use.legacy.settings = TRUE,
+    filename = paste0(date, '_ta_hours', '.pdf'),
+    width = 6,
+    height = 6,
+    resolution = 300
+    )
 
 # Hours External Employment
+raw <- matched_lists[['Hours External Employment']]
+raw_df <- lapply(seq_along(raw), function(i) data.frame(value = raw[[i]], name = names(raw)[i]))
+raw_df <- data.frame(do.call(rbind, raw_df), check.names = F)
+raw_df$year <- gsub('X', '', raw_df$name)
+raw_df$year <- gsub('_', '-', raw_df$year)
+raw_df <- raw_df[raw_df$value != 0 & !is.na(raw_df$value), ]
+
+create.histogram(
+    main = 'Number of External Employment Hours in those Employed',
+    main.cex = 1,
+    x = ~ value | year,
+    data = raw_df,
+    layout = c(1, length(unique(raw_df$year))),
+    type = 'percent',
+    xlab.label = 'Hours',
+    xlab.cex = 1,
+    ylab.label = 'Percentage of Responses',
+    ylab.cex = 1,
+    # xaxis.lab = raw_df$year,
+    xaxis.cex = 0.8,
+    xaxis.tck = c(0.5, 0),
+    yaxis.cex = 0.8,
+    ylimits = c(0, 31),
+    yaxis.tck = c(0.5, 0),
+    breaks = seq(0, max(raw_df$value), 1),
+    # abline.v = breakpoints,
+    # abline.col = 'grey70',
+    # abline.lwd = 1,
+    # abline.lty = 2,
+    col = default.colours(1, 'pastel'),
+    # add.text = FALSE,
+    # text.labels = unique(patients_noblood),
+    # text.x = get_midpoints(patients_noblood),
+    # text.y = 1.02,
+    # text.col = 'black',
+    # text.cex = 0.8,
+    # text.fontface = 'bold',
+    # LEGEND
+    # legend = list(
+    #     right = list(fun = value_legend)
+    #     ),
+    use.legacy.settings = TRUE,
+    filename = paste0(date, '_employment_hours', '.pdf'),
+    width = 6,
+    height = 6,
+    resolution = 300
+    )
 
 # External Employment Motivation
+work_motivation_cols <- c('External Employment Motivation Additional Income',
+    'External Employment Motivation Work Experience',
+    'External Employment Motivation Personal Interest')
+raw <- matched_lists[work_motivation_cols]
+raw <- lapply(raw, function(x) lapply(x, function(y) as.data.frame(rbind(table(y)))))
+raw <- lapply(raw, function(x) data.frame(do.call(rbind, x), check.names = F))
+raw <- lapply(raw, function(x) { x / rowSums(x, na.rm=T) })
+raw_df <- data.frame(do.call(cbind, raw), check.names=F)
+raw_df$year <- gsub('X', '', rownames(raw_df))
+raw_df$year <- gsub('_', '-', raw_df$year)
+raw_df$order <- 1:nrow(raw_df)
+raw_df_stack <- reshape2::melt(raw_df, id.vars = c('year', 'order'))
+
+raw_df_stack$source <- gsub('(.*?)\\.(.*)', '\\1', raw_df_stack$variable)
+raw_df_stack$source <- gsub('External Employment Motivation ', '', raw_df_stack$source)
+raw_df_stack$rank <- gsub('(.*?)\\.(.*)', '\\2', raw_df_stack$variable)
+raw_df_stack$rank <- factor(raw_df_stack$rank)
+
+# legend
+rank_legend <- legend.grob(
+    legends = list(
+        legend = list(
+            colours = default.colours(3, 'pastel'),
+            labels = c('1', '2', '3'),
+            title = expression(bold(underline('Rank'))),
+            lwd = 0.3
+            )
+        ),
+    label.cex = 0.8,
+    title.cex = 1,
+    title.just = 'left'
+    )
+
+create.barplot(
+    main = 'Rank of Motivation for Employment',
+    main.cex = 1,
+    data = raw_df_stack,
+    formula = value ~ order | source,
+    groups = rank,
+    stack = TRUE,
+    layout = c(3, 1),
+    xlab.label = '',
+    xlab.cex = 0,
+    ylab.label = 'Proportion of Responses',
+    ylab.cex = 1,
+    xaxis.lab = raw_df$year,
+    xaxis.cex = 0.8,
+    xaxis.tck = c(0.5, 0),
+    yaxis.cex = 0.8,
+    ylimits = c(-0.05, 1.05),
+    yaxis.tck = c(0.5, 0),
+    # abline.v = breakpoints,
+    # abline.col = 'grey70',
+    # abline.lwd = 1,
+    # abline.lty = 2,
+    col = default.colours(3, 'pastel'),
+    # add.text = FALSE,
+    # text.labels = unique(patients_noblood),
+    # text.x = get_midpoints(patients_noblood),
+    # text.y = 1.02,
+    # text.col = 'black',
+    # text.cex = 0.8,
+    # text.fontface = 'bold',
+    # LEGEND
+    legend = list(
+        right = list(fun = rank_legend)
+        ),
+    use.legacy.settings = TRUE,
+    filename = paste0(date, '_work_motivation_rank', '.pdf'),
+    width = 8,
+    height = 6,
+    resolution = 300
+    )
 
 ## SCHOLARSHIP ####################################################################################
 
-# Applied Scholarships Hold
+# Applied Hold Scholarships Binary
+scholarship_cols <- c('scholarship.applied', 'scholarship.held')
+raw <- matched_lists[scholarship_cols]
+raw <- lapply(raw, function(x) data.frame(do.call(rbind, lapply(x, table))))
+raw <- lapply(raw, function(x) { x / rowSums(x) })
+raw_df <- data.frame(do.call(cbind, raw))
+raw_df$year <- gsub('X', '', rownames(raw_df))
+raw_df$year <- gsub('_', '-', raw_df$year)
+raw_df$order <- 1:nrow(raw_df)
+raw_df_stack <- reshape2::melt(raw_df, id.vars = c('year', 'order'))
+raw_df_stack$source <- gsub('.*\\.(.*)\\.(.*)\\.', '\\1', raw_df_stack$variable)
+raw_df_stack$source <- factor(raw_df_stack$source, c('applied', 'held'))
+raw_df_stack <- raw_df_stack[!grepl('FALSE', raw_df_stack$variable), ]
 
-# Hold Scholarships Binary
+# legend
+scholarship_legend <- legend.grob(
+    legends = list(
+        legend = list(
+            colours = default.colours(2, 'pastel'),
+            labels = c('Applied for Scholarships for the Coming Year', 'Held Scholarships in the Previous Year'),
+            title = '',
+            lwd = 0.3
+            )
+        ),
+    label.cex = 0.8,
+    title.cex = 0,
+    title.just = 'left'
+    )
+
+create.scatterplot(
+    main = 'Scholarships Status',
+    main.cex = 1,
+    data = raw_df_stack,
+    formula = value ~ order,
+    groups = source,
+    xlab.label = '',
+    xlab.cex = 0,
+    ylab.label = 'Proportion of Responses',
+    ylab.cex = 1,
+    xaxis.lab = raw_df$year,
+    xlimits = c(0.5, nrow(raw_df) + 0.5),
+    xat = raw_df$order,
+    xaxis.cex = 0.8,
+    xaxis.tck = c(0.5, 0),
+    yaxis.cex = 0.8,
+    ylimits = c(-0.05, 1.05),
+    yaxis.tck = c(0.5, 0),
+    type = c('p', 'l'),
+    # abline.v = breakpoints,
+    # abline.col = 'grey70',
+    # abline.lwd = 1,
+    # abline.lty = 2,
+    col = default.colours(2, 'pastel'),
+    # add.text = FALSE,
+    # text.labels = unique(patients_noblood),
+    # text.x = get_midpoints(patients_noblood),
+    # text.y = 1.02,
+    # text.col = 'black',
+    # text.cex = 0.8,
+    # text.fontface = 'bold',
+    # LEGEND
+    legend = list(
+        inside = list(fun = scholarship_legend,
+            x = 0.05,
+            y = 0.95)
+        ),
+    use.legacy.settings = TRUE,
+    filename = paste0(date, '_scholarship_status', '.pdf'),
+    width = 6,
+    height = 6,
+    resolution = 300
+    )
 
 # Total Value Top Up
+raw <- matched_lists[['sch.topup.held']]
+raw_df <- lapply(seq_along(raw), function(i) data.frame(value = raw[[i]], name = names(raw)[i]))
+raw_df <- data.frame(do.call(rbind, raw_df), check.names = F)
+raw_df$year <- gsub('X', '', raw_df$name)
+raw_df$year <- gsub('_', '-', raw_df$year)
+raw_df <- raw_df[raw_df$value != 0 & !is.na(raw_df$value), ]
+raw_df$value <- raw_df$value / 1000
+
+create.histogram(
+    main = 'Total Value of Top-Ups Received in those with Awards',
+    main.cex = 1,
+    x = ~ value | year,
+    data = raw_df,
+    layout = c(1, length(unique(raw_df$year))),
+    type = 'percent',
+    xlab.label = 'Top-Ups ($k)',
+    xlab.cex = 1,
+    ylab.label = 'Percentage of Responses',
+    ylab.cex = 1,
+    # xaxis.lab = raw_df$year,
+    xaxis.cex = 0.8,
+    xaxis.tck = c(0.5, 0),
+    xlimits = c(-0.5, 11),
+    yaxis.cex = 0.8,
+    ylimits = c(0, 56),
+    yaxis.tck = c(0.5, 0),
+    breaks = seq(0, max(raw_df$value), 1),
+    # abline.v = breakpoints,
+    # abline.col = 'grey70',
+    # abline.lwd = 1,
+    # abline.lty = 2,
+    col = default.colours(1, 'pastel'),
+    # add.text = FALSE,
+    # text.labels = unique(patients_noblood),
+    # text.x = get_midpoints(patients_noblood),
+    # text.y = 1.02,
+    # text.col = 'black',
+    # text.cex = 0.8,
+    # text.fontface = 'bold',
+    # LEGEND
+    # legend = list(
+    #     right = list(fun = value_legend)
+    #     ),
+    use.legacy.settings = TRUE,
+    filename = paste0(date, '_topup_held', '.pdf'),
+    width = 6,
+    height = 6,
+    resolution = 300
+    )
 
 # Total Value Scholarships
+raw <- matched_lists[['sch.tot.value.held']]
+raw_df <- lapply(seq_along(raw), function(i) data.frame(value = raw[[i]], name = names(raw)[i]))
+raw_df <- data.frame(do.call(rbind, raw_df), check.names = F)
+raw_df$year <- gsub('X', '', raw_df$name)
+raw_df$year <- gsub('_', '-', raw_df$year)
+raw_df <- raw_df[raw_df$value != 0 & !is.na(raw_df$value), ]
+raw_df$value <- raw_df$value / 1000
+# remove crazy values
+raw_df <- raw_df[raw_df$value != 350.004, ]
+
+create.histogram(
+    main = 'Total Value of Scholarships in those with Awards',
+    main.cex = 1,
+    x = ~ value | year,
+    data = raw_df,
+    layout = c(1, length(unique(raw_df$year))),
+    type = 'percent',
+    xlab.label = 'Scholarship Face Value ($k)',
+    xlab.cex = 1,
+    ylab.label = 'Percentage of Responses',
+    ylab.cex = 1,
+    # xaxis.lab = raw_df$year,
+    xaxis.cex = 0.8,
+    xaxis.tck = c(0.5, 0),
+    xlimits = c(-2, 52),
+    yaxis.cex = 0.8,
+    ylimits = c(0, 31),
+    yaxis.tck = c(0.5, 0),
+    breaks = seq(0, max(raw_df$value), 1),
+    # abline.v = breakpoints,
+    # abline.col = 'grey70',
+    # abline.lwd = 1,
+    # abline.lty = 2,
+    col = default.colours(1, 'pastel'),
+    # add.text = FALSE,
+    # text.labels = unique(patients_noblood),
+    # text.x = get_midpoints(patients_noblood),
+    # text.y = 1.02,
+    # text.col = 'black',
+    # text.cex = 0.8,
+    # text.fontface = 'bold',
+    # LEGEND
+    # legend = list(
+    #     right = list(fun = value_legend)
+    #     ),
+    use.legacy.settings = TRUE,
+    filename = paste0(date, '_scholarships_held', '.pdf'),
+    width = 6,
+    height = 6,
+    resolution = 300
+    )
 
 ## LIVING #########################################################################################
 
-# Current Living Situation
-
 # Total Cost of Housing
+raw <- matched_lists[['Total Cost of Housing']]
+raw_df <- lapply(seq_along(raw), function(i) data.frame(value = raw[[i]], name = names(raw)[i]))
+raw_df <- data.frame(do.call(rbind, raw_df), check.names = F)
+raw_df$year <- gsub('X', '', raw_df$name)
+raw_df$year <- gsub('_', '-', raw_df$year)
+raw_df$value[is.na(raw_df$value)] <- 0
+raw_df$value <- raw_df$value / 1000
 
-# Minutes of Commute
+create.histogram(
+    main = 'Monthly Housing Expensis',
+    main.cex = 1,
+    x = ~ value | year,
+    data = raw_df,
+    layout = c(1, length(unique(raw_df$year))),
+    type = 'percent',
+    xlab.label = 'Cost ($k)',
+    xlab.cex = 1,
+    ylab.label = 'Percentage of Responses',
+    ylab.cex = 1,
+    # xaxis.lab = raw_df$year,
+    xaxis.cex = 0.8,
+    xaxis.tck = c(0.5, 0),
+    xlimits = c(-0.5, 3.5),
+    yaxis.cex = 0.8,
+    ylimits = c(0, 60),
+    yaxis.tck = c(0.5, 0),
+    breaks = seq(0, ceiling(max(raw_df$value)), 0.25),
+    # abline.v = breakpoints,
+    # abline.col = 'grey70',
+    # abline.lwd = 1,
+    # abline.lty = 2,
+    col = default.colours(1, 'pastel'),
+    # add.text = FALSE,
+    # text.labels = unique(patients_noblood),
+    # text.x = get_midpoints(patients_noblood),
+    # text.y = 1.02,
+    # text.col = 'black',
+    # text.cex = 0.8,
+    # text.fontface = 'bold',
+    # LEGEND
+    # legend = list(
+    #     right = list(fun = value_legend)
+    #     ),
+    use.legacy.settings = TRUE,
+    filename = paste0(date, '_housing_monthly', '.pdf'),
+    width = 6,
+    height = 6,
+    resolution = 300
+    )
 
 # Satisfaction with Housing
+raw <- matched_lists[['Satisfaction with Housing']]
+raw <- lapply(raw, function(y) as.data.frame(rbind(table(y))))
+raw <- data.frame(do.call(rbind.fill, raw), check.names = F)
+raw <- raw / rowSums(raw, na.rm=T)
+raw_df <- data.frame(do.call(cbind, raw), check.names=F)
+raw_df$year <- gsub('X', '', names(matched_lists[['Satisfaction with Housing']]))
+raw_df$year <- gsub('_', '-', raw_df$year)
+raw_df$order <- 1:nrow(raw_df)
+raw_df_stack <- reshape2::melt(raw_df, id.vars = c('year', 'order'))
+raw_df_stack$value[is.na(raw_df_stack$value)] <- 0
+raw_df_stack$variable <- factor(raw_df_stack$variable, c('Yes', 'Could be better', 'No'))
+
+create.barplot(
+    main = 'Satisfaction with Current Housing',
+    main.cex = 1,
+    data = raw_df_stack,
+    formula = value ~ order,
+    groups = variable,
+    stack = TRUE,
+    xlab.label = '',
+    xlab.cex = 0,
+    ylab.label = 'Proportion of Responses',
+    ylab.cex = 1,
+    xaxis.lab = raw_df$year,
+    xaxis.cex = 0.8,
+    xaxis.tck = c(0.5, 0),
+    yaxis.cex = 0.8,
+    ylimits = c(-0.05, 1.05),
+    yaxis.tck = c(0.5, 0),
+    # abline.v = breakpoints,
+    # abline.col = 'grey70',
+    # abline.lwd = 1,
+    # abline.lty = 2,
+    col = default.colours(3, 'pastel'),
+    # add.text = FALSE,
+    # text.labels = unique(patients_noblood),
+    # text.x = get_midpoints(patients_noblood),
+    # text.y = 1.02,
+    # text.col = 'black',
+    # text.cex = 0.8,
+    # text.fontface = 'bold',
+    # LEGEND
+    legend = list(
+        right = list(fun = three_legend)
+        ),
+    use.legacy.settings = TRUE,
+    filename = paste0(date, '_housing', '.pdf'),
+    width = 6,
+    height = 6,
+    resolution = 300
+    )
 
 ## TRANSPORT ######################################################################################
 
-# Main Modes of Transportation
+# Minutes of Commute
+raw <- matched_lists[['Minutes of Commute']]
+raw_df <- lapply(seq_along(raw), function(i) data.frame(value = raw[[i]], name = names(raw)[i]))
+raw_df <- data.frame(do.call(rbind, raw_df), check.names = F)
+raw_df$year <- gsub('X', '', raw_df$name)
+raw_df$year <- gsub('_', '-', raw_df$year)
+raw_df$value[is.na(raw_df$value)] <- 0
+
+create.histogram(
+    main = 'Average One-Way Commute Length',
+    main.cex = 1,
+    x = ~ value | year,
+    data = raw_df,
+    layout = c(1, length(unique(raw_df$year))),
+    type = 'percent',
+    xlab.label = 'Time (min)',
+    xlab.cex = 1,
+    ylab.label = 'Percentage of Responses',
+    ylab.cex = 1,
+    # xaxis.lab = raw_df$year,
+    xaxis.cex = 0.8,
+    xaxis.tck = c(0.5, 0),
+    xlimits = c(-5, 215),
+    xat = seq(0, 210, 30),
+    yaxis.cex = 0.8,
+    ylimits = c(0, 17),
+    yaxis.tck = c(0.5, 0),
+    breaks = seq(0, ceiling(max(raw_df$value)), 5),
+    # abline.v = breakpoints,
+    # abline.col = 'grey70',
+    # abline.lwd = 1,
+    # abline.lty = 2,
+    col = default.colours(1, 'pastel'),
+    # add.text = FALSE,
+    # text.labels = unique(patients_noblood),
+    # text.x = get_midpoints(patients_noblood),
+    # text.y = 1.02,
+    # text.col = 'black',
+    # text.cex = 0.8,
+    # text.fontface = 'bold',
+    # LEGEND
+    # legend = list(
+    #     right = list(fun = value_legend)
+    #     ),
+    use.legacy.settings = TRUE,
+    filename = paste0(date, '_commute', '.pdf'),
+    width = 6,
+    height = 6,
+    resolution = 300
+    )
 
 # Total Cost of Transport
+raw <- matched_lists[['Total Cost of Transport']]
+raw_df <- lapply(seq_along(raw), function(i) data.frame(value = raw[[i]], name = names(raw)[i]))
+raw_df <- data.frame(do.call(rbind, raw_df), check.names = F)
+raw_df$year <- gsub('X', '', raw_df$name)
+raw_df$year <- gsub('_', '-', raw_df$year)
+raw_df$value[is.na(raw_df$value)] <- 0
+
+create.histogram(
+    main = 'Monthly Transportation Cost',
+    main.cex = 1,
+    x = ~ value | year,
+    data = raw_df,
+    layout = c(1, length(unique(raw_df$year))),
+    type = 'percent',
+    xlab.label = 'Cost ($)',
+    xlab.cex = 1,
+    ylab.label = 'Percentage of Responses',
+    ylab.cex = 1,
+    # xaxis.lab = raw_df$year,
+    xaxis.cex = 0.8,
+    xaxis.tck = c(0.5, 0),
+    xlimits = c(-20, 1000),
+    # xat = seq(0, 210, 30),
+    yaxis.cex = 0.8,
+    ylimits = c(0, 21),
+    yaxis.tck = c(0.5, 0),
+    breaks = seq(0, ceiling(max(raw_df$value)), 10),
+    # abline.v = breakpoints,
+    # abline.col = 'grey70',
+    # abline.lwd = 1,
+    # abline.lty = 2,
+    col = default.colours(1, 'pastel'),
+    # add.text = FALSE,
+    # text.labels = unique(patients_noblood),
+    # text.x = get_midpoints(patients_noblood),
+    # text.y = 1.02,
+    # text.col = 'black',
+    # text.cex = 0.8,
+    # text.fontface = 'bold',
+    # LEGEND
+    # legend = list(
+    #     right = list(fun = value_legend)
+    #     ),
+    use.legacy.settings = TRUE,
+    filename = paste0(date, '_transportation_cost', '.pdf'),
+    width = 6,
+    height = 6,
+    resolution = 300
+    )
 
 ## MENTAL HEALTH ##################################################################################
 
 # Anxiety or Depression
+raw <- matched_lists[['Anxiety or Depression']]
+raw_df <- lapply(raw, table)
+raw_df <- data.frame(do.call(rbind, raw_df))
+raw_df <- raw_df / rowSums(raw_df)
+raw_df$year <- gsub('X', '', rownames(raw_df))
+raw_df$year <- gsub('_', '-', raw_df$year)
+raw_df$order <- 1:nrow(raw_df)
+raw_df_stack <- reshape2::melt(raw_df, id.vars = c('year', 'order'))
+raw_df_stack$variable <- factor(raw_df_stack$variable, c('Yes', 'No'))
+
+create.barplot(
+    main = 'Do You Suffer from Depression or Anxiety',
+    main.cex = 1,
+    data = raw_df_stack,
+    formula = value ~ order,
+    groups = variable,
+    stack = TRUE,
+    xlab.label = '',
+    xlab.cex = 0,
+    ylab.label = 'Proportion of Responses',
+    ylab.cex = 1,
+    xaxis.lab = raw_df$year,
+    xaxis.cex = 0.8,
+    xaxis.tck = c(0.5, 0),
+    yaxis.cex = 0.8,
+    ylimits = c(-0.05, 1.05),
+    yaxis.tck = c(0.5, 0),
+    # abline.v = breakpoints,
+    # abline.col = 'grey70',
+    # abline.lwd = 1,
+    # abline.lty = 2,
+    col = default.colours(2, 'pastel'),
+    # add.text = FALSE,
+    # text.labels = unique(patients_noblood),
+    # text.x = get_midpoints(patients_noblood),
+    # text.y = 1.02,
+    # text.col = 'black',
+    # text.cex = 0.8,
+    # text.fontface = 'bold',
+    # LEGEND
+    legend = list(
+        right = list(fun = yes_no_legend)
+        ),
+    use.legacy.settings = TRUE,
+    filename = paste0(date, '_depression', '.pdf'),
+    width = 6,
+    height = 6,
+    resolution = 300
+    )
 
 # Financial Impact Mental Health
+raw <- matched_lists[['Financial Negative Mental Health']]
+raw_df <- lapply(raw, table)
+raw_df <- data.frame(do.call(rbind, raw_df))
+raw_df <- raw_df / rowSums(raw_df)
+raw_df$year <- gsub('X', '', rownames(raw_df))
+raw_df$year <- gsub('_', '-', raw_df$year)
+raw_df$order <- 1:nrow(raw_df)
+raw_df_stack_negative <- reshape2::melt(raw_df, id.vars = c('year', 'order'))
+
+raw <- matched_lists[['Financial Impact Mental Health']]
+raw_df <- lapply(raw, table)
+raw_df <- data.frame(do.call(rbind, raw_df))
+raw_df <- raw_df / rowSums(raw_df)
+colnames(raw_df) <- colnames(raw_df)[ncol(raw_df):1]
+raw_df$year <- gsub('X', '', rownames(raw_df))
+raw_df$year <- gsub('_', '-', raw_df$year)
+raw_df$order <- 1:nrow(raw_df) + 2
+raw_df_stack <- reshape2::melt(raw_df, id.vars = c('year', 'order'))
+
+raw_df_stack <- rbind(raw_df_stack_negative, raw_df_stack)
+raw_df_stack$variable <- factor(raw_df_stack$variable)
+
+create.barplot(
+    main = 'My Financial Situation Negatively Impacts My Mental Health',
+    main.cex = 1,
+    data = raw_df_stack,
+    formula = value ~ order,
+    groups = variable,
+    stack = TRUE,
+    xlab.label = '',
+    xlab.cex = 0,
+    ylab.label = 'Proportion of Responses',
+    ylab.cex = 1,
+    xaxis.lab = unique(raw_df_stack$year),
+    xaxis.cex = 0.8,
+    xaxis.tck = c(0.5, 0),
+    yaxis.cex = 0.8,
+    ylimits = c(-0.05, 1.05),
+    yaxis.tck = c(0.5, 0),
+    # abline.v = breakpoints,
+    # abline.col = 'grey70',
+    # abline.lwd = 1,
+    # abline.lty = 2,
+    col = default.colours(5, 'pastel'),
+    # add.text = FALSE,
+    # text.labels = unique(patients_noblood),
+    # text.x = get_midpoints(patients_noblood),
+    # text.y = 1.02,
+    # text.col = 'black',
+    # text.cex = 0.8,
+    # text.fontface = 'bold',
+    # LEGEND
+    legend = list(
+        right = list(fun = agreement_legend)
+        ),
+    use.legacy.settings = TRUE,
+    filename = paste0(date, '_finance_impact_mental', '.pdf'),
+    width = 6,
+    height = 6,
+    resolution = 300
+    )
 
 # Adequate Mental Health Resources
+raw <- matched_lists[['Adequate Mental Health Resources']]
+raw_df <- lapply(raw, table)
+raw_df <- data.frame(do.call(rbind, raw_df))
+raw_df <- raw_df / rowSums(raw_df)
+raw_df$year <- gsub('X', '', rownames(raw_df))
+raw_df$year <- gsub('_', '-', raw_df$year)
+raw_df$order <- 1:nrow(raw_df)
+raw_df_stack <- reshape2::melt(raw_df, id.vars = c('year', 'order'))
+raw_df_stack$variable <- factor(raw_df_stack$variable)
+
+create.barplot(
+    main = 'Available Resources Adequately Support My Mental Health Needs',
+    main.cex = 1,
+    data = raw_df_stack,
+    formula = value ~ order,
+    groups = variable,
+    stack = TRUE,
+    xlab.label = '',
+    xlab.cex = 0,
+    ylab.label = 'Proportion of Responses',
+    ylab.cex = 1,
+    xaxis.lab = raw_df$year,
+    xaxis.cex = 0.8,
+    xaxis.tck = c(0.5, 0),
+    yaxis.cex = 0.8,
+    ylimits = c(-0.05, 1.05),
+    yaxis.tck = c(0.5, 0),
+    # abline.v = breakpoints,
+    # abline.col = 'grey70',
+    # abline.lwd = 1,
+    # abline.lty = 2,
+    col = default.colours(5, 'pastel'),
+    # add.text = FALSE,
+    # text.labels = unique(patients_noblood),
+    # text.x = get_midpoints(patients_noblood),
+    # text.y = 1.02,
+    # text.col = 'black',
+    # text.cex = 0.8,
+    # text.fontface = 'bold',
+    # LEGEND
+    legend = list(
+        right = list(fun = agreement_legend)
+        ),
+    use.legacy.settings = TRUE,
+    filename = paste0(date, '_mental_health_resources_adequate', '.pdf'),
+    width = 6,
+    height = 6,
+    resolution = 300
+    )
