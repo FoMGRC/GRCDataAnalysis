@@ -65,7 +65,6 @@ dat$sexual.minority <- ifelse(dat[['Sexual Identity']] == 'straight (heterosexua
 
 dat$racialized <- ifelse(dat[['Do you identify as a racialized person?']] == 'YES', TRUE,
                     ifelse(dat[['Do you identify as a racialized person?']] == 'NO', FALSE, NA))
-
 # racial / ethnicity
 # additional responses:
 # Jewish
@@ -84,6 +83,37 @@ dat$racialized <- ifelse(dat[['Do you identify as a racialized person?']] == 'YE
 # table(dat[["Do you have any disabilities?"]])
 # dat <- replace_entry(dat, "Do you have any disabilities?", "Please specify", NA)
 # dat <- replace_entry(dat, "Do you have any disabilities?", "Long-term", NA)
+
+# international
+dat$international <- dat[['Are you an international or domestic student?']] == 'International'
+dat[['What made you decide to come to Canada for graduate school?']] <- ifelse(dat$international,
+    dat[['What made you decide to come to Canada for graduate school?']], NA)
+dat[['My department provided enough help with my transition and integration in Canada.']] <- ifelse(dat$international,
+    dat[['My department provided enough help with my transition and integration in Canada.']], NA)
+dat[['My department/faculty provided enough help with the application process for a study permit.']] <- ifelse(dat$international,
+    dat[['My department/faculty provided enough help with the application process for a study permit.']], NA)
+dat[['How much money do you send back home? (Annually)']] <- ifelse(dat$international,
+    dat[['How much money do you send back home? (Annually)']], NA)
+
+# support
+q <- 'If you require additional monetary support for your day-to-day expenses, what are the sources?'
+dat$support.family <- grepl('Parents|boyfriend', dat[[q]], ignore.case = T)
+dat$support.ta <- grepl('Teaching Assistant|T.A.', dat[[q]], ignore.case = T)
+dat$support.employment <- grepl('employment|work|job', dat[[q]], ignore.case = T)
+dat$support.loans <- grepl('Loans', dat[[q]], ignore.case = T)
+dat$support.savings <- grepl('Personal savings', dat[[q]], ignore.case = T)
+dat$support.none <- grepl('I do not receive', dat[[q]], ignore.case = T)
+# filter for those that cannot support on stipend
+q <- 'Can you support all of your day-to-day living expenses exclusively from your graduate funding (i.e stipend and awards/top-ups)?'
+dat$support.family.no <- ifelse(dat[[q]] == 'No', dat$support.family, NA)
+dat$support.ta.no <- ifelse(dat[[q]] == 'No', dat$support.ta, NA)
+dat$support.employment.no <- ifelse(dat[[q]] == 'No', dat$support.employment, NA)
+dat$support.loans.no <- ifelse(dat[[q]] == 'No', dat$support.loans, NA)
+dat$support.savings.no <- ifelse(dat[[q]] == 'No', dat$support.savings, NA)
+dat$support.none.no <- ifelse(dat[[q]] == 'No', dat$support.none, NA)
+
+# degree program
+dat[['If MSc, do you intend to transfer to the PhD program?']] <- ifelse(dat[['What degree program are you in?']] != 'Thesis-based Masters', NA, dat[['If MSc, do you intend to transfer to the PhD program?']])
 
 # area of research
 dat <- replace_entry(dat, "What is your area of research?", "Structural biology", "Structural Biology")

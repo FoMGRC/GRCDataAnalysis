@@ -74,6 +74,34 @@ table(dat[["Do you have a physical disability?"]])
 print(table(dat[["What department are you in?"]]))
 dat$dept.short <- factor(dat[["What department are you in?"]], labels = c("BCHM", "Imm.", "LMP", "MBP", "MoGen", "NutriSci", "PharmTox", "Phys", "RSI", "IMS"))
 
+# degree program
+dat[['If MSc, do you intend to transfer to the PhD program?']] <- ifelse(dat[['What degree program are you in?']] != 'Thesis-based Masters', NA, dat[['If MSc, do you intend to transfer to the PhD program?']])
+
+# international
+dat$international <- dat[['Are you an international or domestic student?']] == 'International'
+dat[['What made you decide to come to Canada for graduate school?']] <- ifelse(dat$international,
+    dat[['What made you decide to come to Canada for graduate school?']], NA)
+dat[['My department provided enough help with my transition to Canada.']] <- ifelse(dat$international,
+    dat[['My department provided enough help with my transition to Canada.']], NA)
+
+# support
+q <- 'If you require additional monetary support for your day-to-day expenses, what are the sources?'
+dat$support.family <- grepl('Parents', dat[[q]], ignore.case = T)
+dat$support.ta <- grepl('Teaching Assistant|T.A.', dat[[q]], ignore.case = T)
+dat$support.employment <- grepl('employment|work|job', dat[[q]], ignore.case = T)
+dat$support.loans <- grepl('Loans', dat[[q]], ignore.case = T)
+dat$support.savings <- grepl('Personal savings', dat[[q]], ignore.case = T)
+dat$support.none <- grepl('I do not receive', dat[[q]], ignore.case = T)
+# filter for those that cannot support on stipend
+q <- 'Can you support all of your day-to-day living expenses exclusively from your graduate funding (i.e stipend and awards/top-ups)?'
+dat$support.family.no <- ifelse(dat[[q]] == 'No', dat$support.family, NA)
+dat$support.ta.no <- ifelse(dat[[q]] == 'No', dat$support.ta, NA)
+dat$support.employment.no <- ifelse(dat[[q]] == 'No', dat$support.employment, NA)
+dat$support.loans.no <- ifelse(dat[[q]] == 'No', dat$support.loans, NA)
+dat$support.savings.no <- ifelse(dat[[q]] == 'No', dat$support.savings, NA)
+dat$support.none.no <- ifelse(dat[[q]] == 'No', dat$support.none, NA)
+
+
 # area of research
 # make every letter after space upper case
 dat[["What is your area of research?"]] <- tools::toTitleCase(dat[["What is your area of research?"]])
