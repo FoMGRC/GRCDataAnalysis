@@ -192,7 +192,7 @@ dat$sch.apply <- gsub(pattern = ", | & R",
 dat$sch.apply <- strsplit(x = as.character(dat$sch.apply), split = ";")
 
 # Replace in list
-dat$sch.apply <- replace_in_list(dat$sch.apply, "2021|first|holding|not apply|entering|had CIHR|had the Restracomp|new|late June|not eligible|inelligible", 'Did not apply', ignore_case = T)
+dat$sch.apply <- replace_in_list(dat$sch.apply, "2021|first|holding|not apply|entering|had CIHR|had the Restracomp|new|late June|not eligible|inelligible|NA", 'Did not apply', ignore_case = T)
 dat$sch.apply <- replace_in_list(dat$sch.apply, "internal", 'Department &/or hospital-specific award', ignore_case = T)
 
 dat$sch.apply <- replace_in_list(dat$sch.apply, "University-Wide", 'SGS University-Wide Awards')
@@ -211,14 +211,7 @@ table(unlist(dat$sch.apply))
 dat[[q]] <- sapply(dat$sch.apply, paste, collapse=", ")
 dat <- dat[, colnames(dat) != 'sch.apply']
 
-# awards received
-q <- "What type of scholarship(s) did you receive during the 2020/2021 academic year?"
-scholarships.won.columns <- grep(x=colnames(dat), pattern=q, fixed=TRUE)
-
-# total value of scholarship
-q <- "What was the total value ($) of all scholarships you received during the 2020/2021 academic year?"
-dat$sch.tot.value <- as.numeric(dat[[q]])
-table(dat$sch.tot.value)
+dat$scholarship.applied <- dat[[q]] != 'Did not apply' & dat[[q]] != 'NA'
 
 # individual scholarships
 q <- 'What type of scholarship(s) did you receive during the 2020/2021 academic year?'
@@ -226,11 +219,20 @@ scholarships.won.columns <- grep(x=colnames(dat), pattern=q, fixed=TRUE)
 smallDat <- dat[,scholarships.won.columns]
 colnames(smallDat) <- gsub(colnames(smallDat), pat="What type of scholarship\\(s\\) did you receive during the 2020/2021 academic year\\? \\[|\\]", rep="")
 dat <- cbind(dat, smallDat)
+# awards received
+dat$scholarship.held <- rowSums(dat[, scholarships.won.columns] == '0.0') != length(scholarships.won.columns)
+
+# total value of scholarship
+q <- "What was the total value ($) of all scholarships you received during the 2020/2021 academic year?"
+dat$sch.tot.value <- as.numeric(dat[[q]])
+table(dat$sch.tot.value)
+dat$sch.tot.value.held <- ifelse(dat$scholarship.held, dat$sch.tot.value, NA)
 
 # total value of topup
 q <- "What was the monetary value, beyond your base stipend, that you received as a result of winning any awards (i.e. \"top-ups\") for the 2020/2021 academic year?"
 dat$sch.topup <- as.numeric(dat[[q]])
 table(dat$sch.topup)
+dat$sch.topup.held <- ifelse(dat$scholarship.held, dat$sch.topup, NA)
 
 # covid CERB
 q <- "How much money ($) did you receive from CERB?"

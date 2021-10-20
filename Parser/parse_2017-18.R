@@ -118,6 +118,8 @@ table(unlist(dat$sch.apply))
 dat[['What award(s) did you apply for?']] <- sapply(dat$sch.apply, paste, collapse=", ")
 dat <- dat[, colnames(dat) != 'sch.apply']
 
+dat$scholarship.applied <- dat[['What award(s) did you apply for?']] != 'NA'
+
 # Awards hold
 dat$sch.hold <- dat[['What type of scholarship(s) did you receive?']]
 # Cleaning fields with extra entries
@@ -153,15 +155,19 @@ table(unlist(dat$sch.hold))
 dat[["What type of scholarship(s) did you receive?"]] <- sapply(dat$sch.hold, paste, collapse=", ")
 dat <- dat[, colnames(dat) != 'sch.hold']
 
+dat$scholarship.held <- dat[["What type of scholarship(s) did you receive?"]] != 'NA'
+
 # scholarship value
 q <- 'What was the total value of your scholarship(s) for the 2016/17 academic year?'
 dat[[q]] <- gsub('\\,\\$', '', dat[[q]])
 dat$sch.tot.value <- as.numeric(dat[[q]])
 table(dat$sch.tot.value)
+dat$sch.tot.value.held <- ifelse(dat$scholarship.held, dat$sch.tot.value, NA)
 
 q <- 'What was the monetary value beyond your base stipend that you received as a result of winning any awards (i.e. "top-ups") for the 2016/17 academic year?'
 dat$sch.topup <- as.numeric(dat[[q]])
 table(dat$sch.topup)
+dat$sch.topup.held <- ifelse(dat$scholarship.held, dat$sch.topup, NA)
 
 # jobs
 q <- 'If externally employed, how many hours per week do you work on average (outside of graduate work)?'
