@@ -62,7 +62,8 @@ for (i in 1:nrow(matching)){
 # additional columns
 additional_cols <- c('gender.minority', 'sexual.minority', 'racialized', 'international',
     'sch.tot.value', 'sch.topup', 'support.family', 'support.ta', 'support.employment',
-    'support.loans', 'support.savings', 'support.none', 'scholarship.applied',
+    'support.loans', 'support.savings', 'support.none', 'support.family.no', 'support.ta.no', 'support.employment.no',
+    'support.loans.no', 'support.savings.no', 'support.none.no', 'scholarship.applied',
     'scholarship.held', 'sch.tot.value', 'sch.tot.value.held', 'sch.topup', 'sch.topup.held')
 
 for (i in 1:length(additional_cols)){
