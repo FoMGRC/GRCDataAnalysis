@@ -36,6 +36,8 @@ print(sapply(survey_list, ncol))
 setwd('~/Documents/grc_data/Longitudinal/')
 matching <- read.delim('All GRC Survey Question Correspondences 2017-2021 - Sheet2.tsv', as.is=T)
 
+date <- Sys.Date()
+
 ## MATCH ##########################################################################################
 
 matched_lists <- list()
@@ -77,4 +79,4 @@ for (i in 1:length(additional_cols)){
     }
 }
 
-
+saveRDS(matched_lists, paste0(date, '_matched_lists_2017-2021.RDS'))

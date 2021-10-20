@@ -29,6 +29,11 @@ setwd('~/Documents/grc_data/Longitudinal/')
 
 date <- Sys.Date()
 
+latest_rds <- list.files('./', '*matched_lists_2017-2021.RDS')
+latest_rds <- latest_rds[length(latest_rds)]
+
+matched_lists <- readRDS(latest_rds)
+
 ## HELP ###########################################################################################
 
 yes_no_legend <- legend.grob(
