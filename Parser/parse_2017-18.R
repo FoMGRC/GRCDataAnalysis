@@ -183,4 +183,9 @@ q <- 'Approximately how much do you spend per month on additional essential expe
 dat[[q]] <- as.numeric(dat[[q]])
 table(dat[[q]])
 
+# support
+q <- 'What is the approximate annual monetary value of your additional support?'
+dat[[q]][is.na(dat[[q]])] <- '0.0'
+table(dat[[q]])
+
 write.table(dat, file="~/Documents/grc_data/Parsed/GRC_Survey_Cleaned_2017-18.tsv", sep='\t', quote=T, row.names=F, col.names=T)

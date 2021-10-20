@@ -112,8 +112,10 @@ dat$support.loans.no <- ifelse(dat[[q]] == 'No', dat$support.loans, NA)
 dat$support.savings.no <- ifelse(dat[[q]] == 'No', dat$support.savings, NA)
 dat$support.none.no <- ifelse(dat[[q]] == 'No', dat$support.none, NA)
 
-# degree program
+# transfer
 dat[['If MSc, do you intend to transfer to the PhD program?']] <- ifelse(dat[['What degree program are you in?']] != 'Thesis-based Masters', NA, dat[['If MSc, do you intend to transfer to the PhD program?']])
+q <- 'Does/did the lack of financial security during graduate school discourage your decision to transfer to a PhD?'
+dat[[q]] <- ifelse(dat[['What degree program are you in?']] != 'Thesis-based Masters', NA, dat[[q]])
 
 # area of research
 dat <- replace_entry(dat, "What is your area of research?", "Structural biology", "Structural Biology")

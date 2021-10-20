@@ -74,8 +74,10 @@ table(dat[["Do you have a physical disability?"]])
 print(table(dat[["What department are you in?"]]))
 dat$dept.short <- factor(dat[["What department are you in?"]], labels = c("BCHM", "Imm.", "LMP", "MBP", "MoGen", "NutriSci", "PharmTox", "Phys", "RSI", "IMS"))
 
-# degree program
+# transfer
 dat[['If MSc, do you intend to transfer to the PhD program?']] <- ifelse(dat[['What degree program are you in?']] != 'Thesis-based Masters', NA, dat[['If MSc, do you intend to transfer to the PhD program?']])
+q <- 'Does/did the lack of financial security during graduate school discourage your decision to transfer to a PhD?'
+dat[[q]] <- ifelse(dat[['What degree program are you in?']] != 'Thesis-based Masters', NA, dat[[q]])
 
 # international
 dat$international <- dat[['Are you an international or domestic student?']] == 'International'

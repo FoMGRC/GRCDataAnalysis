@@ -55,7 +55,10 @@ dat <- replace_entry(dat, 'What degree program are you in?', '^PhD after MSc$', 
 dat <- replace_entry(dat, 'What degree program are you in?', 'MHSc', 'MSc')
 table(dat[['What degree program are you in?']])
 
+# transfer
 dat[['If MSc, do you intend to transfer to the PhD program?']] <- ifelse(dat[['What degree program are you in?']] != 'MSc', NA, dat[['If MSc, do you intend to transfer to the PhD program?']])
+q <- 'Does/did the financial outlook of graduate school impact your decision to transfer to a PhD?'
+dat[[q]] <- ifelse(dat[['What degree program are you in?']] != 'MSc', NA, dat[[q]])
 
 # international
 dat$international <- dat[['Are you an international or domestic student?']] == 'International'

@@ -55,7 +55,10 @@ dat <- replace_entry(dat, 'What degree program are you in?', 'previously', 'Dire
 dat <- replace_entry(dat, 'What degree program are you in?', '^PhD with MSc$', 'Transferred PhD')
 table(dat[['What degree program are you in?']])
 
+# transfer
 dat[['If MSc, do you intend to transfer to the PhD program?']] <- ifelse(dat[['What degree program are you in?']] != 'MSc', NA, dat[['If MSc, do you intend to transfer to the PhD program?']])
+q <- 'Does/did the financial outlook of graduate school impact your decision to transfer to a PhD?'
+dat[[q]] <- ifelse(dat[['What degree program are you in?']] != 'MSc', NA, dat[[q]])
 
 # international
 dat$international <- dat[['Are you an international or domestic student?']] == 'International'
@@ -82,6 +85,10 @@ dat$support.employment.no <- ifelse(dat[[q]] == 'No', dat$support.employment, NA
 dat$support.loans.no <- ifelse(dat[[q]] == 'No', dat$support.loans, NA)
 dat$support.savings.no <- ifelse(dat[[q]] == 'No', dat$support.savings, NA)
 dat$support.none.no <- ifelse(dat[[q]] == 'No', dat$support.none, NA)
+
+q <- 'What is the approximate annual monetary value of your additional support?'
+dat[[q]][is.na(dat[[q]])] <- '0.0'
+table(dat[[q]])
 
 # area of research
 # make every letter after space upper case
