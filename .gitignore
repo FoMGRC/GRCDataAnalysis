@@ -6,3 +6,7 @@ question_correspondences.tsv
 figures/
 
 .DS_Store
+
+external_data/GRC_StudList_15Oct21.xlsx
+
+external_data/OSAP_Oct2020.pdf

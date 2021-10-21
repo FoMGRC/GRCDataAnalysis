@@ -1,15 +1,27 @@
 library(dplyr)
 library(ggplot2)
 library(readr)
+library(readxl)
 library(scales)
 
+dir.create("figures")
+
 ## need to modify to reduce the number of dependencies
-responses_2021_22_cleaned <- read_delim("survey_results/GRC_Survey_Cleaned_2021-22.tsv", 
+responses_2021_22_cleaned <- read_delim("GRCDataAnalysis/survey_results/cleaned/GRC_Survey_Cleaned_2021-22.tsv", 
                                         delim = "\t")
+
+## import enrollment numbers
+GRC_StudList_15Oct21 <- read_excel("GRCDataAnalysis/external_data/GRC_StudList_15Oct21.xlsx")
+studlist_sum <- GRC_StudList_15Oct21 %>% 
+  filter(grepl("DOC|Masters",`Prog Type`),
+         `Department Code` != "Rehabilitation Sciences") %>%
+  mutate(prog_type_simp = 
+           ifelse(`Prog Type` == "DOC", "PhD", "MSc")) %>%
+  group_by(`Department Code`, prog_type_simp) %>% count()
+
 ## filter out RSI
 responses_2021_22_cleaned <- responses_2021_22_cleaned %>% 
   filter(dept.short != "RSI")
-dir.create("figures")
 
 ## all degree program types
 responses_2021_22_cleaned %>% 
@@ -19,6 +31,25 @@ responses_2021_22_cleaned %>%
   coord_flip() +
   labs(title = "Responses from each department")
 ggsave("figures/what_dept.png")
+
+## percent of dept responding
+responses_2021_22_cleaned %>% 
+  mutate(`Department Code` = gsub("Department of ", "", `What department are you in?`),
+         prog_type_simp = factor(ifelse(grepl("PhD", `What degree program are you in?`), 
+                                 "PhD", "MSc"), levels = c("MSc", "PhD"))) %>%
+  group_by(prog_type_simp,`Department Code`) %>%
+  count() %>%
+  left_join(studlist_sum, by = c("Department Code", "prog_type_simp")) %>%
+  mutate(prop_responding = n.x/n.y) %>%
+  ggplot(aes(x = `Department Code`, y = prop_responding*100, fill = prog_type_simp)) +
+  geom_col(position = "dodge") +
+  ylab("Percent of MSc and PhD responses from each department") +
+  ylim(c(0,70)) +
+  scale_fill_manual(values = c("blue","red")) +
+  coord_flip() +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 12), axis.title.y = element_blank())
+ggsave("figures/response_percentages.png")
 
 ## % additional monetary support needed
 responses_2021_22_cleaned %>%

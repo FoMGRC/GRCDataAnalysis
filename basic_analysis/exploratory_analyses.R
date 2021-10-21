@@ -55,3 +55,52 @@ responses_2021_22_cleaned %>%
   ggplot(aes(x = food, y = housing)) +  
   geom_density_2d_filled(alpha = 0.6, contour_var = "count")
 
+## parental education levels (asked for by GLSE)
+par_ed_df <- responses_2021_22_cleaned %>% 
+  transmute(par_ed = `Parents'/Guardians'/Caregivers' highest level of education?`,
+         par_ed_simp = case_when(
+           grepl("college|post-grad", par_ed) & grepl("in Canada", par_ed) & grepl("outside Canada", par_ed) ~ "Minimum college education both in and outside Canada",
+           grepl("college|post-grad", par_ed) & grepl("in Canada", par_ed) ~ "At least one minimum college education in Canada",
+           grepl("college|post-grad", par_ed) & !grepl("in Canada", par_ed) ~ "At least one minimum college education outside Canada",
+           TRUE ~ par_ed
+         ),
+         mon_supp = factor(`How much additional monetary support would you need to meet your day-to-day expenses each year (above your graduate living allowance)?`,
+                           levels = rev(c("0.0", "$1 - $1,000","$1,000 - $5,000",
+                                      "$5,000 - $10,000", "$10,000 - $15,000",
+                                      "$15,000 - $20,000", "$20,000+")))
+        ) 
+par_ed_df %>% count(par_ed_simp) %>%
+  ggplot(aes(x = par_ed_simp, y = n, fill = par_ed_simp)) + geom_col(show.legend = F) +
+  scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = 15)) +
+  labs(x = "Parental education")
+ggsave("figures/par_ed_attainment.png")
+
+par_ed_df %>%
+  count(par_ed_simp, mon_supp) %>%
+  group_by(par_ed_simp) %>% mutate(prop = n/sum(n)) %>%
+  ggplot(aes(y = prop, x = par_ed_simp, fill = mon_supp)) +
+  geom_col() +
+  geom_text(aes(label = scales::percent(prop)), 
+            size = 3, 
+            position = position_stack(vjust = 0.5)) +
+  labs(x = "Parental education", y = "Proportion") +
+  guides(fill = guide_legend("Additional monetary support needed")) +
+  scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = 15)) +
+  theme_bw()
+ggsave("figures/par_ed_attainment_mon_supp_needed.png")
+
+
+## looking at application for awards
+responses_2021_22_cleaned %>% 
+       select(contains("motivation to apply for sch")) %>%
+  tidyr::pivot_longer(everything(), 
+                      names_to = "motivation_type", values_to = "rank", 
+                      values_transform = list(rank = as.character)) %>%
+  mutate(motivation_type = gsub(".*\\[(.*)\\].*","\\1", motivation_type),
+         rank = ifelse(rank == "1", "1 - most important", 
+                       ifelse(rank == "3", "3 - least important", rank))) %>%
+  group_by(rank, motivation_type) %>% count() %>% 
+  group_by(rank) %>% mutate(prop = n/sum(n)) %>%
+  ggplot() + geom_col(aes(x = rank, y = prop, fill = motivation_type)) +
+  theme_bw()
+ggsave("figures/award_app_motivs.png")
