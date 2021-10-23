@@ -3,24 +3,6 @@
 library(readxl)
 library(data.table)
 
-## HELPER #########################################################################################
-
-replace_entry <- function(dat, column, search, replace, ignore_case = FALSE){
-
-    dat[grep(search, x = dat[[column]], ignore.case = ignore_case), column] <- replace
-
-    return(dat)
-}
-
-replace_in_list <- function(ll, search, replace, ignore_case = FALSE){
-
-    ll <- sapply(ll, function(x) ifelse(grepl(search, x, ignore.case = ignore_case), replace, x))
-
-    # ll <- rapply(ll, function(x) gsub(pattern = search, x = x, replacement = replace, ignore.case = T), how = "replace")
-
-    return(ll)
-}
-
 ## DATA ###########################################################################################
 
 parsed_dir <- '~/Documents/grc_data/Parsed/'
