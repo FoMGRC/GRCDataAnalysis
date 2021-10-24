@@ -95,9 +95,9 @@ responses_2021_22_cleaned %>%
   ggplot(
     aes(x = `What was the monetary value, beyond your base stipend, that you received as a result of winning any awards (i.e. \\top-ups\\) for the 2020/2021 academic year?`)) + 
   geom_histogram(breaks = seq(0, 5000, 1000), fill = "#0A4B97") + 
-  theme_bw() +
+  theme_bw() + theme(plot.title = element_text(size = 12)) +
   labs(x = "Top-up amount", title = "What was the monetary value, beyond your base stipend,\nthat you received as a result of winning any awards (i.e. top-ups) for the 2020/2021 academic year?",
                                             )
 ggsave(filename = "GRCDataAnalysis/figures/distributions/top-up.png",
-       width = 8, height = 6, units = "in") 
+       width = 8, height = 3, units = "in") 
 
