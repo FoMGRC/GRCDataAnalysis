@@ -48,4 +48,30 @@ tat <- as.data.frame(rbind(tat))
 tatt <- tat / nrow(dat)
 tatt <- cbind(tat, tatt)
 
-write.table(tat, 'need_extra_by_can_live.tsv', col.names=T, row.names=T, quote=T, sep='\t')
+write.table(tatt, 'ta_employment.tsv', col.names=T, row.names=T, quote=T, sep='\t')
+
+employed <- dat[[q1]] > 0 | dat[[q2]] > 0
+sum(employed)
+q <- 'If you have additional employment, what is your motivation (including TA-ships)? [Additional Income]'
+table(dat[[q]][employed])
+
+## MONTH ##########################################################################################
+
+# housing expenses
+q <- "Approximately what are your individual monthly housing expenses (i.e. rent, mortgage, maintenance fees, utilities, etc.)?"
+dat[[q]][is.na(dat[[q]])] <- 0
+median(dat[[q]])
+quantile(dat[[q]])
+
+# transit
+q <- "How much do you spend on transit per month?"
+dat[[q]][is.na(dat[[q]])] <- 0
+median(dat[[q]])
+quantile(dat[[q]])
+
+
+# health care
+q <- "Approximately what are your individual monthly health care expenses not covered by the U of T insurance plan (i.e. left over dental costs, emergency dental, physiotherapy, additional eye care, counselling, etc.)?"
+dat[[q]][is.na(dat[[q]])] <- 0
+median(dat[[q]])
+quantile(dat[[q]])

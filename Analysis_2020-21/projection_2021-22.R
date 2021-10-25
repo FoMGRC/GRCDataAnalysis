@@ -55,7 +55,7 @@ convert_year_to_2019 <- function(value_df, cpi_df){
 
 ## DATA ###########################################################################################
 
-work_dir <- '~/Documents/grc_data/Projection/'
+work_dir <- '~/Documents/grc_data/2021-22/'
 
 date <- Sys.Date()
 
@@ -115,16 +115,16 @@ projection_key <- list(
         		'MSc Living Allowance', 'MSc Living Allowance 2019 Constant $',
                 'Proposed Increase',
                 'Proposed Increase 2019 Constant $'),
-        cex = 0.8,
+        cex = 1.4,
         col = c(rep(c("#542A85", "#B92F5A", "#D9713E"), each = 2), 'red', '#F8B4E3')
         ),
     lines = list(
         lty = rep(c(1, 2), 4),
         col = c(rep(c("#542A85", "#B92F5A", "#D9713E"), each = 2), 'red', '#F8B4E3'),
-        lwd = 2,
+        lwd = 4,
         cex = 0.5
         ),
-    padding.text = 2
+    padding.text = 3
     )
 
 line_cols <- c(rep(c("#542A85", "#B92F5A", "#D9713E"), each = 2),
@@ -132,27 +132,27 @@ line_cols <- c(rep(c("#542A85", "#B92F5A", "#D9713E"), each = 2),
 
 create.scatterplot(
     main = 'Living Allowance vs. LIM-AT Projection',
-    main.cex = 1,
+    main.cex = 0 ,
     data = projection_stack,
     formula = value ~ order,
     groups = variable,
     xlab.label = '',
     xlab.cex = 0,
     ylab.label = 'Dollar Value ($)',
-    ylab.cex = 1,
-    xaxis.lab = projection$Year,
+    ylab.cex = 1.4,
+    xaxis.lab = ifelse(1:length(projection$Year) %in% seq(1, max(projection$order), 2), projection$Year, ''),
     xlimits = c(0.5, nrow(projection) + 0.5),
-    xat = projection$order,
-    xaxis.cex = 0.8,
+    xat = seq(1, max(projection$order), 1),
+    xaxis.cex = 1.4,
     xaxis.tck = c(0.5, 0),
-    yaxis.cex = 0.8,
+    yaxis.cex = 1.3,
     ylimits = c(16000, 41000),
     yaxis.tck = c(0.5, 0),
     type = c('p', 'l'),
     pch = rep(c(19, 15, 17, 15, 17), each = 2),
     lty = rep(c(1, 2), 10),
     col = line_cols,
-    lwd = c(rep(1, 6), 2, 1, 2, 1),
+    lwd = c(rep(2, 6), 4, 1, 4, 1),
     # abline.v = breakpoints,
     # abline.col = 'grey70',
     # abline.lwd = 1,
