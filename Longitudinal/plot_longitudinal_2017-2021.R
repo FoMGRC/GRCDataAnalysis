@@ -7,21 +7,39 @@ library(BoutrosLab.plotting.general)
 
 ## DATA ###########################################################################################
 
-setwd('~/Documents/grc_data/Longitudinal/')
+setwd('~/Documents/grc_data/2021-22/')
 
 date <- Sys.Date()
 
-latest_rds <- list.files('./', '*matched_lists_2017-2021.RDS')
+latest_rds <- list.files('~/Documents/grc_data/Longitudinal/', '*matched_lists_2017-2021.RDS', full.names=T)
 latest_rds <- latest_rds[length(latest_rds)]
 
 matched_lists <- readRDS(latest_rds)
 
+report_cols <- c('#ba70a9', '#75a9ba')
+report_greys <- c('#e2e3e6', '#b3b5b8', '#9e9fa3', '#74777a', '#363637')
+
 ## HELP ###########################################################################################
+
+adjust_colour_alpha <- function(color, percent = 50, name = NULL) {
+  #      color = color name
+  #    percent = % transparency
+  #       name = an optional name for the color
+
+    ## Get RGB values for named color
+    rgb.val <- col2rgb(color)
+
+    ## Make new color using input color as base and alpha set by transparency
+    t.col <- rgb(rgb.val[1], rgb.val[2], rgb.val[3],
+                 max = 255,
+                 alpha = (100 - percent) * 255 / 100,
+                 names = name)
+}
 
 yes_no_legend <- legend.grob(
     legends = list(
         legend = list(
-            colours = default.colours(2, 'pastel'),
+            colours = c(report_cols[1], report_greys[1]),
             labels = c('Yes', 'No'),
             title = expression(bold(underline('Response'))),
             lwd = 0.3
@@ -851,44 +869,50 @@ raw_df <- lapply(seq_along(raw), function(i) data.frame(value = raw[[i]], name =
 raw_df <- data.frame(do.call(rbind, raw_df), check.names = F)
 raw_df$year <- gsub('X', '', raw_df$name)
 raw_df$year <- gsub('_', '-', raw_df$year)
+raw_df$order <- as.numeric(factor(raw_df$year))
 raw_df <- raw_df[raw_df$value != 0, ]
 
-create.histogram(
+raw_medians <- sapply(split(raw_df, raw_df$year), function(x) median(x$value))
+
+create.boxplot(
+    formula = value ~ as.factor(order),
+    data = raw_df,
     main = 'Number of TA Hours in those who TA',
     main.cex = 1,
-    x = ~ value | year,
-    data = raw_df,
-    layout = c(1, length(unique(raw_df$year))),
-    type = 'percent',
-    xlab.label = 'Hours',
-    xlab.cex = 1,
-    ylab.label = 'Percentage of Responses',
+    ylab.label = 'Hours / Week',
     ylab.cex = 1,
+    xlab.label = '',
+    xlab.cex = 0,
     # xaxis.lab = raw_df$year,
     xaxis.cex = 0.8,
     xaxis.tck = c(0.5, 0),
     yaxis.cex = 0.8,
-    ylimits = c(0, 31),
+    ylimits = c(0, 16),
     yaxis.tck = c(0.5, 0),
-    breaks = seq(0, max(raw_df$value), 1),
-    # abline.v = breakpoints,
-    # abline.col = 'grey70',
+    yat = seq(0, 15, 5),
+    xaxis.lab = unique(raw_df$year),
+    add.stripplot = TRUE,
+    points.col = 'grey50',
+    points.alpha = 0.5,
+    # abline.h = 5,
+    # abline.col = report_cols[2],
     # abline.lwd = 1,
     # abline.lty = 2,
-    col = default.colours(1, 'pastel'),
-    # add.text = FALSE,
-    # text.labels = unique(patients_noblood),
-    # text.x = get_midpoints(patients_noblood),
-    # text.y = 1.02,
+    col = adjust_colour_alpha(report_cols[1]),
+    # add.text = TRUE,
+    # text.labels = raw_medians,
+    # text.x = c(1, 2, 3),
+    # text.y = raw_medians + 1,
+    # text.anchor = 'centre',
     # text.col = 'black',
-    # text.cex = 0.8,
+    # text.cex = 1,
     # text.fontface = 'bold',
     # LEGEND
     # legend = list(
     #     right = list(fun = value_legend)
     #     ),
     use.legacy.settings = TRUE,
-    filename = paste0(date, '_ta_hours', '.pdf'),
+    filename = paste0(date, '_ta_hours_box', '.pdf'),
     width = 6,
     height = 6,
     resolution = 300
@@ -900,44 +924,51 @@ raw_df <- lapply(seq_along(raw), function(i) data.frame(value = raw[[i]], name =
 raw_df <- data.frame(do.call(rbind, raw_df), check.names = F)
 raw_df$year <- gsub('X', '', raw_df$name)
 raw_df$year <- gsub('_', '-', raw_df$year)
-raw_df <- raw_df[raw_df$value != 0 & !is.na(raw_df$value), ]
+raw_df$order <- as.numeric(factor(raw_df$year))
+raw_df <- raw_df[!is.na(raw_df$value), ]
+raw_df <- raw_df[raw_df$value != 0, ]
 
-create.histogram(
-    main = 'Number of External Employment Hours in those Employed',
-    main.cex = 1,
-    x = ~ value | year,
+raw_medians <- sapply(split(raw_df, raw_df$year), function(x) median(x$value))
+
+create.boxplot(
+    formula = value ~ as.factor(order),
     data = raw_df,
-    layout = c(1, length(unique(raw_df$year))),
-    type = 'percent',
-    xlab.label = 'Hours',
-    xlab.cex = 1,
-    ylab.label = 'Percentage of Responses',
+    main = 'Number of External work Hours in those who work',
+    main.cex = 1,
+    ylab.label = 'Hours / Week',
     ylab.cex = 1,
+    xlab.label = '',
+    xlab.cex = 0,
     # xaxis.lab = raw_df$year,
     xaxis.cex = 0.8,
     xaxis.tck = c(0.5, 0),
     yaxis.cex = 0.8,
-    ylimits = c(0, 31),
+    ylimits = c(0, 41),
     yaxis.tck = c(0.5, 0),
-    breaks = seq(0, max(raw_df$value), 1),
-    # abline.v = breakpoints,
-    # abline.col = 'grey70',
+    yat = seq(0, 40, 5),
+    xaxis.lab = unique(raw_df$year),
+    add.stripplot = TRUE,
+    points.col = 'grey50',
+    points.alpha = 0.5,
+    # abline.h = 5,
+    # abline.col = report_cols[2],
     # abline.lwd = 1,
     # abline.lty = 2,
-    col = default.colours(1, 'pastel'),
-    # add.text = FALSE,
-    # text.labels = unique(patients_noblood),
-    # text.x = get_midpoints(patients_noblood),
-    # text.y = 1.02,
+    col = adjust_colour_alpha(report_cols[1]),
+    # add.text = TRUE,
+    # text.labels = raw_medians,
+    # text.x = c(1, 2, 3),
+    # text.y = raw_medians + 1,
+    # text.anchor = 'centre',
     # text.col = 'black',
-    # text.cex = 0.8,
+    # text.cex = 1,
     # text.fontface = 'bold',
     # LEGEND
     # legend = list(
     #     right = list(fun = value_legend)
     #     ),
     use.legacy.settings = TRUE,
-    filename = paste0(date, '_employment_hours', '.pdf'),
+    filename = paste0(date, '_employment_hours_box', '.pdf'),
     width = 6,
     height = 6,
     resolution = 300
@@ -1205,46 +1236,51 @@ raw_df <- lapply(seq_along(raw), function(i) data.frame(value = raw[[i]], name =
 raw_df <- data.frame(do.call(rbind, raw_df), check.names = F)
 raw_df$year <- gsub('X', '', raw_df$name)
 raw_df$year <- gsub('_', '-', raw_df$year)
+raw_df$order <- as.numeric(as.factor(raw_df$year))
 raw_df$value[is.na(raw_df$value)] <- 0
-raw_df$value <- raw_df$value / 1000
+raw_df$value <- raw_df$value
 
-create.histogram(
-    main = 'Monthly Housing Expensis',
-    main.cex = 1,
-    x = ~ value | year,
+raw_medians <- sapply(split(raw_df, raw_df$year), function(x) median(x$value))
+
+create.boxplot(
+    formula = value ~ as.factor(order),
     data = raw_df,
-    layout = c(1, length(unique(raw_df$year))),
-    type = 'percent',
-    xlab.label = 'Cost ($k)',
-    xlab.cex = 1,
-    ylab.label = 'Percentage of Responses',
+    main = 'Monthly Housing Expenses',
+    main.cex = 1,
+    ylab.label = 'Total Expenses per Person ($)',
     ylab.cex = 1,
+    xlab.label = '',
+    xlab.cex = 0,
     # xaxis.lab = raw_df$year,
     xaxis.cex = 0.8,
     xaxis.tck = c(0.5, 0),
-    xlimits = c(-0.5, 3.5),
     yaxis.cex = 0.8,
-    ylimits = c(0, 60),
+    ylimits = c(0, 4500),
     yaxis.tck = c(0.5, 0),
-    breaks = seq(0, ceiling(max(raw_df$value)), 0.25),
-    # abline.v = breakpoints,
-    # abline.col = 'grey70',
+    yat = seq(0, 4000, 1000),
+    xaxis.lab = unique(raw_df$year),
+    add.stripplot = TRUE,
+    points.col = 'grey50',
+    points.alpha = 0.2,
+    # abline.h = 5,
+    # abline.col = report_cols[2],
     # abline.lwd = 1,
     # abline.lty = 2,
-    col = default.colours(1, 'pastel'),
-    # add.text = FALSE,
-    # text.labels = unique(patients_noblood),
-    # text.x = get_midpoints(patients_noblood),
-    # text.y = 1.02,
+    col = adjust_colour_alpha(report_cols[1], 25),
+    # add.text = TRUE,
+    # text.labels = raw_medians,
+    # text.x = c(1, 2, 3),
+    # text.y = raw_medians + 1,
+    # text.anchor = 'centre',
     # text.col = 'black',
-    # text.cex = 0.8,
+    # text.cex = 1,
     # text.fontface = 'bold',
     # LEGEND
     # legend = list(
     #     right = list(fun = value_legend)
     #     ),
     use.legacy.settings = TRUE,
-    filename = paste0(date, '_housing_monthly', '.pdf'),
+    filename = paste0(date, '_housing_box', '.pdf'),
     width = 6,
     height = 6,
     resolution = 300
