@@ -119,7 +119,7 @@ raw_df_stack$variable <- factor(raw_df_stack$variable, c('Yes', 'Undecided', 'No
 transfer_legend <- legend.grob(
     legends = list(
         legend = list(
-            colours = default.colours(3, 'pastel'),
+            colours = c(report_cols[2], report_greys[1], report_cols[1]),
             labels = c('Yes', 'Undecided', 'No'),
             title = expression(bold(underline('Response'))),
             lwd = 0.3
@@ -151,7 +151,7 @@ create.barplot(
     # abline.col = 'grey70',
     # abline.lwd = 1,
     # abline.lty = 2,
-    col = default.colours(3, 'pastel'),
+    col = c(report_cols[2], report_greys[1], report_cols[1]),
     # add.text = FALSE,
     # text.labels = unique(patients_noblood),
     # text.x = get_midpoints(patients_noblood),
@@ -165,6 +165,66 @@ create.barplot(
         ),
     use.legacy.settings = TRUE,
     filename = paste0(date, '_msc_transfer', '.pdf'),
+    width = 6,
+    height = 6,
+    resolution = 300
+    )
+
+# Intent to Transfer Domestic
+raw <- matched_lists[c('Intent to Transfer', 'international')]
+shared_years <- Reduce(intersect, lapply(raw, names))
+raw_df <- lapply(shared_years, function(i) as.data.frame(table(raw[[1]][[i]], raw[[2]][[i]])))
+raw_df <- lapply(seq_along(shared_years), function(i) { raw_df[[i]]$year <- shared_years[i]; raw_df[[i]]})
+raw_df <- lapply(raw_df, function(x) {
+    x <- x[x$Var2 == 'FALSE', ]
+    x$Freq <- x$Freq / sum(x$Freq)
+    x
+    # x[x$Var1 == 'Yes', ]
+    })
+
+raw_df <- data.frame(do.call(rbind, raw_df))
+colnames(raw_df) <- c('transfer', 'international', 'value', 'year')
+
+raw_df$year <- gsub('X', '', raw_df$year)
+raw_df$year <- gsub('_', '-', raw_df$year)
+raw_df$order <- as.numeric(as.factor(raw_df$year))
+raw_df$transfer <- factor(raw_df$transfer, c('Yes', 'Undecided', 'No'))
+
+create.barplot(
+    main = 'Intent to Transfer to PhD in MSc Respondents',
+    main.cex = 1,
+    data = raw_df,
+    formula = value ~ order,
+    groups = transfer,
+    stack = TRUE,
+    xlab.label = '',
+    xlab.cex = 0,
+    ylab.label = 'Proportion of Domestic Student Responses',
+    ylab.cex = 1,
+    xaxis.lab = raw_df$year,
+    xaxis.cex = 0.8,
+    xaxis.tck = c(0.5, 0),
+    yaxis.cex = 0.8,
+    ylimits = c(-0.05, 1.05),
+    yaxis.tck = c(0.5, 0),
+    # abline.v = breakpoints,
+    # abline.col = 'grey70',
+    # abline.lwd = 1,
+    # abline.lty = 2,
+    col = c(report_cols[2], report_greys[1], report_cols[1]),
+    # add.text = FALSE,
+    # text.labels = unique(patients_noblood),
+    # text.x = get_midpoints(patients_noblood),
+    # text.y = 1.02,
+    # text.col = 'black',
+    # text.cex = 0.8,
+    # text.fontface = 'bold',
+    # LEGEND
+    legend = list(
+        right = list(fun = transfer_legend)
+        ),
+    use.legacy.settings = TRUE,
+    filename = paste0(date, '_msc_transfer_domestic', '.pdf'),
     width = 6,
     height = 6,
     resolution = 300
@@ -202,7 +262,7 @@ create.barplot(
     # abline.col = 'grey70',
     # abline.lwd = 1,
     # abline.lty = 2,
-    col = default.colours(2, 'pastel'),
+    col = c(report_cols[1], report_greys[1]),
     # add.text = FALSE,
     # text.labels = unique(patients_noblood),
     # text.x = get_midpoints(patients_noblood),
@@ -216,6 +276,66 @@ create.barplot(
         ),
     use.legacy.settings = TRUE,
     filename = paste0(date, '_msc_transfer_finance', '.pdf'),
+    width = 6,
+    height = 6,
+    resolution = 300
+    )
+
+# Impact Transfer to PhD Domestic
+raw <- matched_lists[c('Impact Transfer to PhD', 'international')]
+shared_years <- Reduce(intersect, lapply(raw, names))
+raw_df <- lapply(shared_years, function(i) as.data.frame(table(raw[[1]][[i]], raw[[2]][[i]])))
+raw_df <- lapply(seq_along(shared_years), function(i) { raw_df[[i]]$year <- shared_years[i]; raw_df[[i]]})
+raw_df <- lapply(raw_df, function(x) {
+    x <- x[x$Var2 == 'FALSE', ]
+    x$Freq <- x$Freq / sum(x$Freq)
+    x
+    # x[x$Var1 == 'Yes', ]
+    })
+
+raw_df <- data.frame(do.call(rbind, raw_df))
+colnames(raw_df) <- c('transfer', 'international', 'value', 'year')
+
+raw_df$year <- gsub('X', '', raw_df$year)
+raw_df$year <- gsub('_', '-', raw_df$year)
+raw_df$order <- as.numeric(as.factor(raw_df$year))
+raw_df$transfer <- factor(raw_df$transfer, c('Yes', 'No'))
+
+create.barplot(
+    main = 'Finances Discourage Transfer to PhD in MSc Respondents',
+    main.cex = 1,
+    data = raw_df,
+    formula = value ~ order,
+    groups = transfer,
+    stack = TRUE,
+    xlab.label = '',
+    xlab.cex = 0,
+    ylab.label = 'Proportion of Domestic Student Responses',
+    ylab.cex = 1,
+    xaxis.lab = raw_df$year,
+    xaxis.cex = 0.8,
+    xaxis.tck = c(0.5, 0),
+    yaxis.cex = 0.8,
+    ylimits = c(-0.05, 1.05),
+    yaxis.tck = c(0.5, 0),
+    # abline.v = breakpoints,
+    # abline.col = 'grey70',
+    # abline.lwd = 1,
+    # abline.lty = 2,
+    col = c(report_cols[1], report_greys[1]),
+    # add.text = FALSE,
+    # text.labels = unique(patients_noblood),
+    # text.x = get_midpoints(patients_noblood),
+    # text.y = 1.02,
+    # text.col = 'black',
+    # text.cex = 0.8,
+    # text.fontface = 'bold',
+    # LEGEND
+    legend = list(
+        right = list(fun = yes_no_legend)
+        ),
+    use.legacy.settings = TRUE,
+    filename = paste0(date, '_msc_transfer_finance_domestic', '.pdf'),
     width = 6,
     height = 6,
     resolution = 300
