@@ -1169,6 +1169,127 @@ create.barplot(
     resolution = 300
     )
 
+# legend
+rank_legend <- legend.grob(
+    legends = list(
+        legend = list(
+            colours = c(report_cols, report_greys[1]),
+            labels = c('1', '2', '3'),
+            title = expression(bold(underline('Rank'))),
+            lwd = 0.3
+            )
+        ),
+    label.cex = 0.8,
+    title.cex = 1,
+    title.just = 'left'
+    )
+
+create.scatterplot(
+    main = 'Rank of Motivation for Employment',
+    main.cex = 1,
+    data = raw_df_stack,
+    formula = value ~ order | source,
+    groups = rank,
+    layout = c(3, 1),
+    xlab.label = '',
+    xlab.cex = 0,
+    ylab.label = 'Proportion of Responses',
+    ylab.cex = 1,
+    xaxis.lab = raw_df$year,
+    xlimits = c(0.5, nrow(raw_df) + 0.5),
+    xat = raw_df$order,
+    xaxis.cex = 0.8,
+    xaxis.tck = c(0.5, 0),
+    yaxis.cex = 0.8,
+    ylimits = c(-0.05, 1.05),
+    yaxis.tck = c(0.5, 0),
+    type = c('p', 'l'),
+    # abline.v = breakpoints,
+    # abline.col = 'grey70',
+    # abline.lwd = 1,
+    # abline.lty = 2,
+    col = c(report_cols, report_greys[1]),
+    # add.text = FALSE,
+    # text.labels = unique(patients_noblood),
+    # text.x = get_midpoints(patients_noblood),
+    # text.y = 1.02,
+    # text.col = 'black',
+    # text.cex = 0.8,
+    # text.fontface = 'bold',
+    # LEGEND
+    legend = list(
+        inside = list(fun = rank_legend,
+            x = 0.05,
+            y = 0.95)
+        ),
+    use.legacy.settings = TRUE,
+    filename = paste0(date, '_rank_employment_scatter', '.pdf'),
+    width = 8,
+    height = 6,
+    resolution = 300
+    )
+
+raw_df_stack <- raw_df_stack[raw_df_stack$source == 'Additional Income', ]
+
+# legend
+rank_legend <- legend.grob(
+    legends = list(
+        legend = list(
+            colours = c(report_cols, report_greys[1]),
+            labels = c('1', '2', '3'),
+            title = expression(bold(underline('Rank'))),
+            lwd = 0.3
+            )
+        ),
+    label.cex = 0.8,
+    title.cex = 1,
+    title.just = 'left'
+    )
+
+create.scatterplot(
+    main = 'Rank of Additional Income as Motivation for Employment',
+    main.cex = 1,
+    data = raw_df_stack,
+    formula = value ~ order,
+    groups = rank,
+    xlab.label = '',
+    xlab.cex = 0,
+    ylab.label = 'Proportion of Responses',
+    ylab.cex = 1,
+    xaxis.lab = raw_df$year,
+    xlimits = c(0.5, nrow(raw_df) + 0.5),
+    xat = raw_df$order,
+    xaxis.cex = 0.8,
+    xaxis.tck = c(0.5, 0),
+    yaxis.cex = 0.8,
+    ylimits = c(-0.05, 1.05),
+    yaxis.tck = c(0.5, 0),
+    type = c('p', 'l'),
+    # abline.v = breakpoints,
+    # abline.col = 'grey70',
+    # abline.lwd = 1,
+    # abline.lty = 2,
+    col = c(report_cols, report_greys[1]),
+    # add.text = FALSE,
+    # text.labels = unique(patients_noblood),
+    # text.x = get_midpoints(patients_noblood),
+    # text.y = 1.02,
+    # text.col = 'black',
+    # text.cex = 0.8,
+    # text.fontface = 'bold',
+    # LEGEND
+    legend = list(
+        inside = list(fun = rank_legend,
+            x = 0.05,
+            y = 0.95)
+        ),
+    use.legacy.settings = TRUE,
+    filename = paste0(date, '_rank_additional_income', '.pdf'),
+    width = 6,
+    height = 6,
+    resolution = 300
+    )
+
 ## SCHOLARSHIP ####################################################################################
 
 # Applied Hold Scholarships Binary
