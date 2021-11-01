@@ -37,6 +37,10 @@ tat <- as.data.frame(rbind(tat))
 
 write.table(tat, 'need_extra_by_can_live.tsv', col.names=T, row.names=T, quote=T, sep='\t')
 
+q <- "Approximately what are your individual monthly health care expenses not covered by the U of T insurance plan (i.e. left over dental costs, emergency dental, physiotherapy, additional eye care, counselling, etc.)?"
+dat[[q]][is.na(dat[[q]])] <- 0
+quantile(dat[[q]])
+
 ## EMPLOYMENT #####################################################################################
 
 q1 <- 'How many hours per week do you work as a teaching assistant?'
