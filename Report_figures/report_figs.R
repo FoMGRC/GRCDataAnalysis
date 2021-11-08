@@ -5,6 +5,7 @@ library(readxl)
 library(tidyr)
 library(scales)
 library(stringr)
+library(patchwork)
 
 theme_set(theme(legend.position = c(0.8,0.8), 
                 legend.background = element_rect(colour = "transparent"),
@@ -29,7 +30,7 @@ dir.create("figures/report_iter")
 responses_2021_22_cleaned <- 
   read_delim("GRCDataAnalysis/survey_results/cleaned/GRC_Survey_Cleaned_2021-22.tsv", 
              delim = "\t")
-responses_2021_22_cleaned <- responses_2021_22_cleaned %>% 
+responses_2021_22_cleaned <- responses_2021_22_cleaned %>%
   filter(`What department are you in?` != "Department of Rehabilitation Sciences Institute")
 
 ## Import response #s
@@ -44,6 +45,7 @@ studlist_sum <- GRC_StudList_15Oct21 %>%
   group_by(`Department Code`, prog_type_simp) %>% count(name = "enrolled_count")
 
 ## Page 1
+
 ### Department response bar graph
 responses_2021_22_cleaned %>% 
   mutate(`Department Code` = gsub("Department of ", "", `What department are you in?`),
@@ -117,46 +119,61 @@ hrs_wrkd <- responses_2021_22_cleaned %>%
   pivot_longer(everything(), names_to = "Job Type", values_to = "Hours worked per week") %>%
   filter(`Hours worked per week` > 0)
 hrs_wrkd_means <- hrs_wrkd %>% group_by(`Job Type`) %>% 
-  summarize(mean_wrked = mean(`Hours worked per week`), median_wrked = median(`Hours worked per week`))
-hrs_wrkd %>%
-  filter(`Hours worked per week` > 0) %>% 
-  ggplot(aes(x = `Hours worked per week`)) +
-  geom_histogram(fill = "#FFF7A7", colour = "black", size = 0.7, binwidth = 5) + 
-  facet_wrap(vars(`Job Type`), nrow = 2, strip.position = "top") +
-  ylab("# of Students") +
-  geom_vline(data = hrs_wrkd_means, aes(xintercept = median_wrked), linetype = 2) +
-  theme(strip.background = element_rect(fill = NA, size = NA),
-        strip.text = element_text(size = 13,face = "bold", hjust = 0, vjust = 1))
-ggsave("figures/report_iter/hrs_wrkd_hist.png")
-ggsave("figures/report_iter/hrs_wrkd_hist.pdf")
+  summarize(mean_wrked = meaqn(`Hours worked per week`), 
+            median_wrked = median(`Hours worked per week`))
+for (i in c(6,11)) {
+  p <- hrs_wrkd %>%
+    ggplot(aes(x = `Hours worked per week`)) +
+    geom_bar(fill = pal[i], colour = "black", size = 0.7, width = 1, ) +
+    scale_x_binned(show.limits = F, breaks = c(1, seq(5,40,5))) +
+    #geom_histogram(fill = pal[i], colour = "black", size = 0.7, binwidth = 5) + 
+    facet_wrap(vars(`Job Type`), nrow = 2, strip.position = "top") +
+    ylab("# of Students") +
+    geom_vline(data = hrs_wrkd_means, aes(xintercept = median_wrked), linetype = 2) +
+    theme(strip.background = element_rect(fill = NA, size = NA),
+          strip.text = element_text(size = 13,face = "bold", hjust = 0, vjust = 1))
+  ggsave(file.path("figures/report_iter", paste0("hrs_wrkd_hist_", i,".png")), 
+         plot = p, width = 9, height =4)
+  ggsave(file.path("figures/report_iter", paste0("hrs_wrkd_hist_", i,".pdf")), 
+         plot = p, width = 9, height =4)
+  
+  # hrs_wrkd %>%
+  #   ggplot(aes(x = `Hours worked per week`)) +
+  #   geom_histogram(fill = pal[i], colour = "black", size = 0.7, binwidth = 5, center = 0) +
+  #   facet_wrap(vars(`Job Type`), nrow = 2, strip.position = "top")
+}
+
 
 #### % of people listing additional income as 1st reason for ext employment: 121 / 219 = 0.5525114155
 #### 219 is the number of people that work >0 hours as TA or external
 
 #### boxplot of hours worked in lab to external work hours?
 responses_2021_22_cleaned %>% 
+  #filter(grepl("PhD", `What degree program are you in?`)) %>%
   transmute(`Hours worked on side-job` = as.numeric(`How many hours per week do you work at your side job (excluding teaching assistantships)?`), 
             `Hours worked as TA` = as.numeric(`How many hours per week do you work as a teaching assistant?`),
-            `Hours worked on research` = gsub(" hours", "", `On average, how many hours a week do you typically work on research-related activities?`),
+            `Hours worked on research` = 
+              gsub("More than", ">", gsub("Less than", "<", gsub(" hours", "", `On average, how many hours a week do you typically work on research-related activities?`))),
             `Hours worked on side-job and TAing` = `Hours worked on side-job` + `Hours worked as TA`) %>%
   filter(`Hours worked on side-job` > 0) %>%
   group_by(`Hours worked on research`) %>%
   mutate(Count = n()) %>%
   ggplot(aes(
     x = factor(`Hours worked on research`, 
-               levels = gsub(" hours", "", c("N/A - It's my first year", "Less than 11 hours",
+               levels = gsub(" hours", "", c("N/A - It's my first year", "< 11 hours",
                           "11-20 hours", "21-30 hours", "31-40 hours",
                           "41-50 hours", "51-60 hours", "61-70 hours",
-                          "71-80 hours", "More than 80 hours"
+                          "71-80 hours", "> 80 hours"
                           ))), 
     y = `Hours worked on side-job`, fill = Count)) +
   geom_boxplot() +  
   labs(x = "Hours worked on research per week") +
   scale_x_discrete(labels = function(x) str_wrap(x, 10)) +
-  scale_fill_gradient(low = "#7FA3B4", high = "#FDFDB2") +
+  scale_fill_gradient(#low = "#7FA3B4", high = "#FDFDB2"
+    low = pal[6], high = pal[11]) +
   theme(legend.position = c(0.08, 0.8))
-ggsave("figures/report_iter/hrs_wrkd_outside_research.png")
-ggsave("figures/report_iter/hrs_wrkd_outside_research.pdf")
+ggsave("figures/report_iter/hrs_wrkd_outside_research.png", width = 9)
+ggsave("figures/report_iter/hrs_wrkd_outside_research.pdf", width = 9)
 
 ### Mental Health Numbers (longitudinal)
 anxiety_depression_yes <- read_tsv("GRCDataAnalysis/Two-Page Report Graphics Iteration/anxiety_depression_yes_2019-21.tsv")
@@ -170,12 +187,14 @@ anxiety_depression_yes %>% group_by(year) %>%
   geom_col(show.legend = T, colour = "black") +
   labs(y = "Percentage", title = "Struggle with anxiety or depression") +
   scale_y_continuous(labels = percent) +
-  scale_fill_manual(values = c("#90B48B","#F5E099")) +
-  guides(fill = guide_legend(reverse = T, title = NULL)) +
+  scale_fill_manual(values = pal[c(6,11)]
+                    #c("#C7C9CA",pal[11])
+                    ) +
+  guides(fill = guide_legend(reverse = F, title = NULL)) +
   theme(axis.title.x = element_blank(), legend.position = "right",
         plot.title = element_text(size = 20, vjust =1.5))
-ggsave("figures/report_iter/anxiety_depression_perc.png")
-ggsave("figures/report_iter/anxiety_depression_perc.pdf", width = 7)
+ggsave("figures/report_iter/anxiety_depression_perc_p+b.png", width = 7)
+ggsave("figures/report_iter/anxiety_depression_perc_p+b.pdf", width = 7)
 
 ## Page 2
 ### % of people suffering from X number of insecurities
@@ -248,32 +267,42 @@ ggsave("figures/report_iter/insec_intersections_bar_plot_all.png", height = 4)
 
 ### Instead of cost of living bar graphs, add the "positive note" figures;
 #### Gap between stipend and poverty line vs. % of people that can support themselves
-stip_pov_gap_v_perc_support <- read_xlsx("GRCDataAnalysis/Two-Page Report Graphics Iteration/gap from poverty line vs. proportion able to support themselves.xlsx")
-fill_col <- pal[4]
+stip_pov_gap_v_perc_support <- read_xlsx("GRCDataAnalysis/external_data/2021 External Stats.xlsx",
+                                         sheet = "TSV for R") %>%
+  mutate(`Gap in 2019 Constant $` = `MBM 2019` - `PhD 2019`) %>% 
+  filter(Year >= 2015, Year <= 2021)
+fill_col <- "black" #pal[4]
 prop_supp <- stip_pov_gap_v_perc_support %>% 
   ggplot(aes(x = Year, y = `Proportion able to Support Themselves`)) +
   geom_line(colour = fill_col) + geom_point(colour = fill_col) + 
   scale_y_continuous(labels = percent) +
   labs(title = str_wrap("% of Students able to support all expenses on stipend", 45)) 
-gap <- stip_pov_gap_v_perc_support %>% 
+gap <- stip_pov_gap_v_perc_support  %>%
   ggplot(aes(x = Year, y = `Gap in 2019 Constant $`), fill = fill_col) +
-  labs(title = str_wrap("Gap between PhD living allowance and LIM-AT (2019 constant $s)", 45)) + 
-  geom_line(colour = fill_col) + geom_point(colour = fill_col) 
+  labs(title = str_wrap("Gap between PhD living allowance and MBM (2019 constant $s)", 45)) + 
+  geom_rect(xmin = 2018, xmax = 2021, ymax = 4100, ymin = 0, fill = "#DFECE0") +
+  #geom_rect(xmin = 2021, xmax = 2022, ymax = 3900, ymin = 0, fill = "#FBF0C5") +
+  geom_line(colour = fill_col) + geom_point(colour = fill_col) #+
+  #lims(y = c(1400, 3600))
 stip <- stip_pov_gap_v_perc_support %>% 
-  ggplot(aes(x = Year, y = `PhD Living Allowance in 2019 Constant $`), fill = fill_col) +
+  ggplot(aes(x = Year, y = `PhD 2019`), fill = fill_col) +
   labs(title = "PhD living allowance (2019 constant $s)") +
+  geom_rect(xmin = 2018, xmax = 2021, ymax = 30000, ymin = 0, fill = "#DFECE0") +
+  #geom_rect(xmin = 2021, xmax = 2022, ymax = 30000, ymin = 0, fill = "#FBF0C5") +
   geom_line(colour = fill_col) + geom_point(colour = fill_col) 
 
-patch_plot <- ((prop_supp/gap) *
+patch_plot <- ((gap) *
   theme(axis.text.x = element_blank(), axis.title.x = element_blank(),
         axis.ticks.x = element_blank(), axis.title.y = element_text(),
         panel.spacing = unit(seq(0, 4),"cm")))/stip &
   theme(plot.title = element_text(hjust = 0, size = 12, vjust = 1),
-        axis.title.y = element_blank(), plot.margin = unit(c(0.2,0.5,0,0.5),"cm")) &
-  xlab("Year preceding survey")
-ggsave("figures/report_iter/stipend_gap_perc_support.png", patch_plot,
+        axis.title.y = element_blank(), 
+        plot.margin = unit(c(0.2,0.5,0,0.5),"cm")) &
+  scale_x_continuous(breaks = seq(2015,2021,1))
+  xlab("Year preceding survey") 
+ggsave("figures/report_iter/stipend_gap_MBM.png", patch_plot,
        width = 5, height = 5.4)
-ggsave("figures/report_iter/stipend_gap_perc_support.pdf", patch_plot, 
+ggsave("figures/report_iter/stipend_gap_MBM.pdf", patch_plot, 
        width = 5, height = 5.4)
 
 
@@ -306,6 +335,44 @@ ggsave("figures/report_iter/masters_transfer_by_financial_discourage.png",
 ggsave("figures/report_iter/masters_transfer_by_financial_discourage.pdf",
        width = 8, height = 6)
 
+responses_2021_22_cleaned %>% 
+  filter(!grepl("Course",`What degree program are you in?`),
+         `On average, how many hours a week do you typically work on research-related activities?` != 
+           "N/A - It's my first year") %>%
+  mutate(res_hrs = `On average, how many hours a week do you typically work on research-related activities?`,
+         res_hrs_numeric = case_when(
+           res_hrs == "Less than 11 hours" ~ (10-1)/2+1,
+           res_hrs == "11-20 hours" ~ (20-11)/2+11,
+           res_hrs == "21-30 hours" ~ (30-21)/2+21,
+           res_hrs == "31-40 hours" ~ (40-31)/2+31,
+           res_hrs == "41-50 hours" ~ (50-41)/2+41,
+           res_hrs == "51-60 hours" ~ (60-51)/2+51,
+           res_hrs == "61-70 hours" ~ (70-61)/2+61,
+           res_hrs == "71-80 hours" ~ (80-71)/2+71,
+           res_hrs == "More than 80 hours" ~ 80
+  ),
+  work_TA = 
+    ifelse(as.numeric(`How many hours per week do you work as a teaching assistant?`) > 0, "Yes", "No"),
+  work_side = ifelse(as.numeric(`How many hours per week do you work at your side job (excluding teaching assistantships)?`) > 0, "Yes", "No"),
+  either = ifelse(work_TA == "Yes" | work_side == "Yes", "Yes", "No")) %>% 
+  group_by(work_side) %>% summarise(rs_hrs_m = mean(res_hrs_numeric),
+                                    rs_hrs_m = median(res_hrs_numeric))
+  
 
+responses_2021_22_cleaned %>% 
+  filter(!grepl("Course",`What degree program are you in?`)) %>%
+  transmute(work_TA = 
+              ifelse(as.numeric(`How many hours per week do you work as a teaching assistant?`) > 0, "Yes", "No"),
+            work_side = ifelse(as.numeric(`How many hours per week do you work at your side job (excluding teaching assistantships)?`) > 0, "Yes", "No"),
+            either = ifelse(work_TA == "Yes" | work_side == "Yes", "Yes", "No")) %>%
+  count(either)
+responses_2021_22_cleaned %>% 
+  filter(!grepl("Course",`What degree program are you in?`)) %>%
+  transmute(reason) %>%
+  count(either)
+    
+127/(310+127) ##0.2906178
+199/(238+199) ##0.455
 
+  
 
