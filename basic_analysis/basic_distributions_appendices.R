@@ -351,12 +351,46 @@ ggsave("GRCDataAnalysis/figures/distributions/commute_length.png",
        width = 11, height = 4)
 
 ## transportation subsidy proposals
-responses_2021_22_cleaned %>% transmute(subs_prop = `Which of the following transportation subsidy proposals would interest you?`) %>%
+responses_2021_22_cleaned %>% 
+  transmute(subs_prop = `Which of the following transportation subsidy proposals would interest you?`) %>%
   filter(!grepl("^Don't|^I submit my transit|^I would vote|^Significantly|^tiered subsidy based|^UPASS|^Free TTC Pass", subs_prop)) %>%
   transmute(subs_prop = str_split(gsub(", I could.*|, No opinion|, TTC pass with.*|, BikeShare has.*|, Something in partnership.*|, Graduate students.*| \\(once the COVID-19 pandemic has passed\\)", 
-                             "", subs_prop),", ")) %>% unnest(subs_prop) %>% 
-  ggplot() + geom_bar(aes(x = subs_prop)) +
-  scale_x_discrete(labels = ~str_wrap(., 15))
+                             "", subs_prop),", ")) %>% 
+  unnest(subs_prop) %>% count(subs_prop) %>% arrange(desc(n)) %>% 
+  mutate(subs_prop = factor(subs_prop, subs_prop)) %>%
+  ggplot() + geom_col(aes(x = subs_prop, y = n),  fill = "#0A4B97") +
+  scale_x_discrete(labels = ~str_wrap(., 15)) +
+  labs(x = "Subsidy Proposal", y = "Proposal selection count", 
+       title = "Which of the following transportation subsidy proposals would interest you?")
+ggsave("GRCDataAnalysis/figures/distributions/subsidy_props.png", 
+       width = 11, height = 4)
 
+## monthly health care expenses not covered by GSU insurance
+med_exp <- median(responses_2021_22_cleaned$`Approximately what are your individual monthly health care expenses not covered by the U of T insurance plan (i.e. left over dental costs, emergency dental, physiotherapy, additional eye care, counselling, etc.)?`, na.rm = T)
+mean_exp <- mean(responses_2021_22_cleaned$`Approximately what are your individual monthly health care expenses not covered by the U of T insurance plan (i.e. left over dental costs, emergency dental, physiotherapy, additional eye care, counselling, etc.)?`, na.rm = T)
 
+responses_2021_22_cleaned %>% transmute(exps = `Approximately what are your individual monthly health care expenses not covered by the U of T insurance plan (i.e. left over dental costs, emergency dental, physiotherapy, additional eye care, counselling, etc.)?`) %>%
+  ggplot() + geom_histogram(aes(x = exps), fill = "#0A4B97", binwidth = 500) + 
+  geom_vline(xintercept = med_exp, linetype = 2) +
+  geom_text(label = paste0("mean = $", round(mean_exp)), aes(x = 650, y = 280)) +
+  labs(x = "Remaining health care expenses ($)", y = "# of Respondents", 
+       title = str_wrap("Approximately what are your individual monthly health care expenses not covered by the U of T insurance plan (i.e. left over dental costs, emergency dental, physiotherapy, additional eye care, counselling, etc.)?", 
+                        110))
+ggsave("GRCDataAnalysis/figures/distributions/health_care_exp_after_insur.png", 
+       width = 11, height = 4)
 
+## Intl why Canada
+responses_2021_22_cleaned %>% 
+  transmute(why_can = str_split(`What made you decide to come to Canada for graduate school?`, ", ")) %>% 
+  unnest(why_can) %>% filter(!is.na(why_can)) %>%
+  mutate(why_can_summ = ifelse(
+    !grepl("^Accessibility|^Canadian|Family|Financial|Top-notch|Want to settle|No particular", why_can), "Other", why_can)) %>% 
+  count(why_can_summ) %>% arrange(desc(n)) %>% mutate(why_can_summ = factor(why_can_summ, why_can_summ)) %>%
+  ggplot() + geom_col(aes(x = why_can_summ, y = n), fill = "#0A4B97") +
+  scale_x_discrete(labels = ~str_wrap(., 15)) +
+  labs(x = "Reason", y = "Selection count", title = "What made you decide to come to Canada for graduate school?")
+ggsave("GRCDataAnalysis/figures/distributions/intl_canada_grad.png", 
+       width = 11, height = 4)
+  
+  
+  
