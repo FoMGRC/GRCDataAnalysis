@@ -8,7 +8,7 @@ library(readxl)
 library(ggpubr)
 library(data.table)
 # Load survey data #
-dat <- read_excel("GRCDataAnalysis/survey_results/Faculty of Medicine Graduate Student Survey_2020_21 (Responses).xlsx", 
+dat <- read_excel("Faculty of Medicine Graduate Student Survey - 2020_21 (Responses).xlsx", 
                   na = c("", "NA", "N/A"))
 
 
@@ -83,7 +83,7 @@ dat$sch.apply <- rapply(dat$sch.apply, function(x) gsub(pattern = "Ted Rogers.*"
 table(unlist(dat$sch.apply))
 
 dat[["What graduate award(s) did you apply for to be held in the 2019-2020 academic year?"]] <- sapply(dat$sch.apply, paste, collapse=", ")
-write.csv(dat[,1:98], file="GRCDataAnalysis/survey_results/cleaned/GRC_Survey_Cleaned_2020-21.csv")
+write.csv(dat[,1:98], file="GRC_Survey_Cleaned.csv")
 
 scholarships.won.columns <- grep(x=colnames(dat), pattern="What type of scholarship(s) did you receive during the 2019/2020 academic year?", fixed=TRUE)
 
